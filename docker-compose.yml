@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  nextjs-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      # This makes the full, auto-generated URL available to the Next.js app at runtime.
+      NEXT_PUBLIC_APP_URL: ${COOLIFY_URL}
+    labels:
+      # Enable Coolify's Traefik proxy to manage this service.
+      - "traefik.enable=true"
+      
+      # The routing rule: Tells Traefik to listen for the FQDN (e.g., app.my-domain.com)
+      # that Coolify automatically provides in the COOLIFY_FQDN environment variable.
+      - "traefik.http.routers.nextjs-router.rule=Host(`${COOLIFY_FQDN}`)"
+      
+      # The port rule: Tells Traefik to forward traffic to port 3000 inside this container,
+      # which is the port the Next.js standalone server is listening on.
+      - "traefik.http.services.nextjs-app.loadbalancer.server.port=3000"
+
