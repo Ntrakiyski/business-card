@@ -5,7 +5,7 @@ import { dirname, join } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const screenshotsDir = join(__dirname, '..', 'screenshots');
+const screenshotsDir = join(__dirname, '..', 'public', 'screenshots');
 
 async function captureScreenshots() {
   console.log('🚀 Starting screenshot capture...');
@@ -49,4 +49,3 @@ captureScreenshots().catch(error => {
   console.error('Script failed:', error);
   process.exit(1);
 });
-
