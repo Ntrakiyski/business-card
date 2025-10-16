@@ -6,18 +6,35 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
+    
+    # 1. Container Environment Variables:
+    # Define environment variables for your application.
+    # SERVICE_FQDN_NEXTJS should be set in your Coolify environment settings to your desired domain (e.g., 'app.yourdomain.com').
     environment:
-      # This makes the full, auto-generated URL available to the Next.js app at runtime.
-      NEXT_PUBLIC_APP_URL: ${COOLIFY_URL}
+      # You can use this variable within your Next.js app if needed.
+      NEXT_PUBLIC_APP_URL: ${SERVICE_URL_NEXTJS} 
+      
+    # 2. Traefik Ingress Labels:
+    # These labels configure how Traefik routes traffic to your service.
     labels:
-      # Enable Coolify's Traefik proxy to manage this service.
+      # Enable Traefik for this service.
       - "traefik.enable=true"
       
-      # The routing rule: Tells Traefik to listen for the FQDN (e.g., app.my-domain.com)
-      # that Coolify automatically provides in the COOLIFY_FQDN environment variable.
-      - "traefik.http.routers.nextjs-router.rule=Host(`${COOLIFY_FQDN}`)"
+      # The routing rule: Tells Traefik to listen for the specific FQDN
+      # you define in the SERVICE_FQDN_NEXTJS environment variable.
+      - "traefik.http.routers.nextjs-app-router.rule=Host(`${SERVICE_FQDN_NEXTJS}`)"
       
-      # The port rule: Tells Traefik to forward traffic to port 3000 inside this container,
-      # which is the port the Next.js standalone server is listening on.
-      - "traefik.http.services.nextjs-app.loadbalancer.server.port=3000"
+      # The port rule: Tells Traefik to forward traffic to port 3000 inside this container.
+      - "traefik.http.services.nextjs-app-service.loadbalancer.server.port=3000"
+      
+    # 3. Networking:
+    # Connect the service to Coolify's pre-existing external network.
+    # Note: The network name 'y0skk4cswws84co8c08g0ss4' is an example from your provided file.
+    # You should ensure this matches the actual network name in your Coolify project.
+    networks:
+      y0skk4cswws84co8c08g0ss4: null 
 
+# Define the external network managed by Coolify.
+networks:
+  y0skk4cswws84co8c08g0ss4: 
+    external: true
