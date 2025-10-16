@@ -19,6 +19,9 @@ export default defineConfig({
       use: { 
         ...devices['iPhone 12'],
         viewport: { width: 370, height: 667 },
+        // Use chromium instead of webkit for better compatibility
+        channel: undefined,
+        browserName: 'chromium',
       },
     },
   ],
@@ -30,4 +33,3 @@ export default defineConfig({
     timeout: 120000,
   },
 });
-
