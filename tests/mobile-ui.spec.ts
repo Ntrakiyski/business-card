@@ -4,10 +4,16 @@ test.describe('Mobile UI Screenshots @370px', () => {
   test.beforeEach(async ({ page }) => {
     // Set viewport to exactly 370px width
     await page.setViewportSize({ width: 370, height: 667 });
+    
+    // Wait for server to be fully ready - increase timeout
+    page.setDefaultTimeout(60000); // 60 second timeout
   });
 
   test('Landing Page - Home', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    
+    // Wait for the page to be fully rendered
+    await page.waitForSelector('h1', { timeout: 60000 });
     await page.waitForLoadState('networkidle');
     
     // Take full page screenshot
@@ -175,4 +181,3 @@ test.describe('UI Element Checks', () => {
     });
   });
 });
-

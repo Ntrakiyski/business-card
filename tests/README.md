@@ -7,8 +7,13 @@ This directory contains Playwright tests for the digital business card applicati
 ```bash
 # Install Playwright browsers (first time only)
 npx playwright install
+npx playwright install-deps
+```
 
-# Run all tests
+### Option 1: Automatic (may have timing issues)
+
+```bash
+# Run all tests (starts dev server automatically)
 npm run test
 
 # Run tests in headed mode (see browser)
@@ -20,6 +25,24 @@ npm run test:ui
 # Generate new screenshots
 npm run test:screenshots
 ```
+
+### Option 2: Manual (recommended for screenshots)
+
+```bash
+# Terminal 1: Start dev server
+npm run dev
+
+# Wait for "Ready in Xms" message, then in Terminal 2:
+bash scripts/take-screenshots.sh
+```
+
+## Known Issues
+
+**Problem:** Screenshots show "Web Preview Starting" instead of actual pages
+
+**Cause:** The automated `webServer` in Playwright config doesn't wait long enough for Next.js to fully compile and start, especially in containerized environments like Codegen.
+
+**Solution:** Use Option 2 above - manually start the dev server first, wait for it to be fully ready, then run the screenshot script.
 
 ## Screenshots
 
@@ -85,4 +108,3 @@ These tests can be run in CI/CD pipelines to catch UI regressions:
 - The dev server is automatically started before tests
 - Screenshots are deterministic and can be used for visual regression testing
 - All tests verify basic accessibility requirements (readable text, adequate touch targets)
-
