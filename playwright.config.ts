@@ -28,8 +28,8 @@ export default defineConfig({
 
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    url: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
+    reuseExistingServer: true,
     timeout: 120000,
     // Wait for server to be fully ready
     stdout: 'pipe',
