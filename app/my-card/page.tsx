@@ -4,7 +4,7 @@ import { QRCodeDisplay } from './qr-code-display';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { ExternalLink } from 'lucide-react';
-import { Database } from '@/lib/database.types';
+import { Database } from '@/lib/types/database';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -22,7 +22,7 @@ export default async function MyCardPage() {
   const { data: profileData, error: profileError } = await supabase
     .from('profiles')
     .select('*')
-    .eq('id', user.id)
+    .eq('user_id', user.id)
     .maybeSingle();
 
   if (profileError || !profileData) {
@@ -47,14 +47,11 @@ export default async function MyCardPage() {
             {/* Header */}
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {profile.display_name}
+                {profile.full_name || profile.username}
               </h1>
-              {profile.job_title && (
-                <p className="text-sm text-gray-600 mt-1">
-                  {profile.job_title}
-                  {profile.company && ` at ${profile.company}`}
-                </p>
-              )}
+              <p className="text-sm text-gray-600 mt-1">
+                @{profile.username}
+              </p>
             </div>
 
             {/* QR Code */}
@@ -74,19 +71,10 @@ export default async function MyCardPage() {
               </Link>
             </div>
 
-            {/* Contact Info */}
-            {(profile.email || profile.phone) && (
-              <div className="pt-4 border-t border-gray-200 w-full space-y-1">
-                {profile.email && (
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">Email:</span> {profile.email}
-                  </p>
-                )}
-                {profile.phone && (
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">Phone:</span> {profile.phone}
-                  </p>
-                )}
+            {/* Bio */}
+            {profile.bio && (
+              <div className="pt-4 border-t border-gray-200 w-full">
+                <p className="text-sm text-gray-600">{profile.bio}</p>
               </div>
             )}
           </div>

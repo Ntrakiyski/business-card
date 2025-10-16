@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Database } from '@/lib/database.types';
+import { Database } from '@/lib/types/database';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 

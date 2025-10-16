@@ -68,11 +68,24 @@ export async function middleware(request: NextRequest) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('username')
-      .eq('id', user.id)
-      .single();
+      .eq('user_id', user.id)
+      .maybeSingle();
 
     if (!profile || !profile.username) {
       return NextResponse.redirect(new URL('/onboarding', request.url));
+    }
+  }
+
+  // Protect onboarding route - redirect if already has username
+  if (user && request.nextUrl.pathname.startsWith('/onboarding')) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (profile?.username) {
+      return NextResponse.redirect(new URL('/my-card', request.url));
     }
   }
 
@@ -85,8 +98,8 @@ export async function middleware(request: NextRequest) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('username')
-      .eq('id', user.id)
-      .single();
+      .eq('user_id', user.id)
+      .maybeSingle();
 
     if (!profile || !profile.username) {
       return NextResponse.redirect(new URL('/onboarding', request.url));
@@ -95,10 +108,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/my-card', request.url));
   }
 
+  // Require authentication for onboarding
+  if (!user && request.nextUrl.pathname.startsWith('/onboarding')) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
   return response;
 }
 
 export const config = {
   matcher: ['/my-card/:path*', '/login', '/signup', '/onboarding'],
 };
-
