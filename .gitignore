@@ -12,6 +12,11 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+/playwright/.cache/
+# Keep screenshots in git
+!/tests/screenshots/
 
 # next.js
 /.next/
