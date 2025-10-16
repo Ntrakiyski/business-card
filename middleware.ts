@@ -67,11 +67,24 @@ export async function middleware(request: NextRequest) {
     // Check if user has completed onboarding
     const { data: profile } = await supabase
       .from('profiles')
-      .select('username')
-      .eq('user_id', user.id)
+      .select('id, username')
+      .eq('id', user.id)
       .maybeSingle();
 
+    console.log('Debug - Middleware /my-card check:', { 
+      userId: user?.id, 
+      profile, 
+      pathname: request.nextUrl.pathname,
+      profileExists: !!profile,
+      usernameExists: !!(profile && profile.username),
+      shouldRedirect: !profile || !profile.username
+    });
+
     if (!profile || !profile.username) {
+      console.log('Debug - Redirecting to onboarding because:', { 
+        noProfile: !profile, 
+        noUsername: profile && !profile.username 
+      });
       return NextResponse.redirect(new URL('/onboarding', request.url));
     }
   }
@@ -80,11 +93,21 @@ export async function middleware(request: NextRequest) {
   if (user && request.nextUrl.pathname.startsWith('/onboarding')) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('username')
-      .eq('user_id', user.id)
+      .select('id, username')
+      .eq('id', user.id)
       .maybeSingle();
 
+    console.log('Debug - Onboarding route check:', { 
+      userId: user?.id, 
+      profile, 
+      pathname: request.nextUrl.pathname,
+      profileExists: !!profile,
+      usernameExists: !!(profile && profile.username),
+      shouldRedirectToMyCard: !!(profile && profile.username)
+    });
+
     if (profile?.username) {
+      console.log('Debug - Redirecting from onboarding to my-card');
       return NextResponse.redirect(new URL('/my-card', request.url));
     }
   }
@@ -97,14 +120,26 @@ export async function middleware(request: NextRequest) {
     // Check if they've completed onboarding
     const { data: profile } = await supabase
       .from('profiles')
-      .select('username')
-      .eq('user_id', user.id)
+      .select('id, username')
+      .eq('id', user.id)
       .maybeSingle();
 
+    console.log('Debug - Auth pages check:', { 
+      userId: user?.id, 
+      profile, 
+      pathname: request.nextUrl.pathname,
+      profileExists: !!profile,
+      usernameExists: !!(profile && profile.username),
+      shouldRedirectToOnboarding: !profile || !profile.username,
+      shouldRedirectToMyCard: profile && profile.username
+    });
+
     if (!profile || !profile.username) {
+      console.log('Debug - Redirecting to onboarding from auth pages');
       return NextResponse.redirect(new URL('/onboarding', request.url));
     }
 
+    console.log('Debug - Redirecting to my-card from auth pages');
     return NextResponse.redirect(new URL('/my-card', request.url));
   }
 

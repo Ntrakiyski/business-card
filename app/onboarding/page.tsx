@@ -33,8 +33,11 @@ export default function OnboardingPage() {
         } else {
           toast.error('Failed to set username. Please try again.')
         }
+      } else if (result && result.success && result.redirectUrl) {
+        // Handle successful redirect on the client side using window.location
+        // This ensures a full page navigation which will trigger middleware checks
+        window.location.href = result.redirectUrl;
       }
-      // If successful, the server action will redirect
     } catch {
       toast.error('An unexpected error occurred. Please try again.')
     } finally {

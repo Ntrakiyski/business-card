@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,7 +10,6 @@ import { signUp } from '@/app/actions/auth'
 import { toast } from 'sonner'
 
 export default function SignUpPage() {
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -23,11 +21,8 @@ export default function SignUpPage() {
     try {
       const result = await signUp(formData)
 
-      if (result.success) {
-        toast.success(result.message || 'Account created successfully!')
-        router.push('/login')
-      } else if (result.error) {
-        // Handle field-specific errors
+      if (result && !result.success && result.error) {
+        // Handle errors
         if (typeof result.error === 'object' && 'email' in result.error) {
           const errors = result.error as Record<string, string[]>
           Object.entries(errors).forEach(([field, messages]) => {
@@ -36,6 +31,10 @@ export default function SignUpPage() {
         } else {
           toast.error('Failed to create account. Please try again.')
         }
+      } else if (result && result.success && result.redirectUrl) {
+        // Handle successful redirect on the client side
+        // Using window.location to ensure a full page navigation that will trigger middleware checks
+        window.location.href = result.redirectUrl;
       }
     } catch {
       toast.error('An unexpected error occurred. Please try again.')

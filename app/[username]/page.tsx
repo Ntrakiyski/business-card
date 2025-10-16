@@ -21,6 +21,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const { username } = params;
   const supabase = await createClient();
 
+  // Check if current user is authenticated
+  const { data: { user } } = await supabase.auth.getUser();
+
   // Fetch profile
   const { data: profileData, error: profileError } = await supabase
     .from('profiles')
@@ -34,42 +37,60 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   const profile = profileData as Profile;
 
+  // Check if the current user is viewing their own profile
+  const isOwner = user && user.id === profile.id;
+
   // Fetch custom links
   const { data: customLinks } = await supabase
     .from('custom_links')
     .select('*')
     .eq('profile_id', profile.id)
-    .eq('enabled', true)
     .order('order', { ascending: true });
+
+  // Filter enabled links for public view, but show all for owner
+  const enabledCustomLinks = isOwner 
+    ? customLinks 
+    : (customLinks || []).filter(link => link.enabled);
 
   // Fetch social links
   const { data: socialLinks } = await supabase
     .from('social_links')
     .select('*')
-    .eq('profile_id', profile.id)
-    .eq('enabled', true);
+    .eq('profile_id', profile.id);
+
+  // Filter enabled links for public view, but show all for owner
+  const enabledSocialLinks = isOwner 
+    ? socialLinks 
+    : (socialLinks || []).filter(link => link.enabled);
 
   // Fetch services
   const { data: services } = await supabase
     .from('services')
     .select('*')
     .eq('profile_id', profile.id)
-    .eq('enabled', true)
     .order('order', { ascending: true });
+
+  // Filter enabled services for public view, but show all for owner
+  const enabledServices = isOwner 
+    ? services 
+    : (services || []).filter(service => service.enabled);
 
   // Fetch widget settings to determine order and visibility
   const { data: widgetSettingsData } = await supabase
     .from('widget_settings')
     .select('*')
     .eq('profile_id', profile.id)
-    .eq('enabled', true)
     .order('order', { ascending: true });
 
-  const widgetSettings = (widgetSettingsData || []) as Database['public']['Tables']['widget_settings']['Row'][];
+  // Filter enabled widgets for public view, but show all for owner
+  const allWidgetSettings = (widgetSettingsData || []) as Database['public']['Tables']['widget_settings']['Row'][];
+  const enabledWidgetSettings = isOwner 
+    ? allWidgetSettings 
+    : allWidgetSettings.filter(setting => setting.enabled);
 
   // Create a map of widget type to order
   const widgetOrder: Record<string, number> = {};
-  widgetSettings.forEach((setting) => {
+  enabledWidgetSettings.forEach((setting) => {
     widgetOrder[setting.widget_type] = setting.order;
   });
 
@@ -78,45 +99,55 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     { 
       type: 'profile', 
       order: widgetOrder['profile'] ?? 1, 
-      component: <ProfileWidget key="profile" profile={profile} /> 
+      component: <ProfileWidget key="profile" profile={profile} editable={isOwner} /> 
     },
     { 
       type: 'bio', 
       order: widgetOrder['bio'] ?? 2, 
-      component: profile.bio ? <BioWidget key="bio" bio={profile.bio} /> : null 
+      component: <BioWidget key="bio" bio={profile.bio} profile={profile} editable={isOwner} /> 
     },
     { 
       type: 'links', 
       order: widgetOrder['links'] ?? 3, 
-      component: customLinks && customLinks.length > 0 ? <LinksWidget key="links" links={customLinks} /> : null 
+      component: <LinksWidget key="links" links={enabledCustomLinks || []} profileId={profile.id} editable={isOwner} /> 
     },
     { 
       type: 'social', 
       order: widgetOrder['social'] ?? 4, 
-      component: socialLinks && socialLinks.length > 0 ? <SocialWidget key="social" links={socialLinks} /> : null 
+      component: <SocialWidget key="social" links={enabledSocialLinks || []} profileId={profile.id} editable={isOwner} /> 
     },
     { 
       type: 'services', 
       order: widgetOrder['services'] ?? 5, 
-      component: services && services.length > 0 ? <ServicesWidget key="services" services={services} /> : null 
+      component: <ServicesWidget key="services" services={enabledServices || []} profileId={profile.id} editable={isOwner} /> 
     },
     { 
       type: 'contact', 
       order: widgetOrder['contact'] ?? 6, 
-      component: <ContactWidget key="contact" profile={profile} /> 
+      component: <ContactWidget key="contact" profile={profile} editable={isOwner} /> 
     },
     { 
       type: 'map', 
       order: widgetOrder['map'] ?? 7, 
-      component: <MapWidget key="map" profile={profile} /> 
+      component: <MapWidget key="map" profile={profile} editable={isOwner} /> 
     },
   ];
 
-  // Sort widgets by order and filter out null components
-  const sortedWidgets = allWidgets
-    .sort((a, b) => a.order - b.order)
-    .map(w => w.component)
-    .filter(Boolean);
+  // Sort widgets by order and filter out null components for public view
+  // For owner, show all widgets even if they have no data
+  let sortedWidgets;
+  if (isOwner) {
+    // For owners, show all widgets in order (widgets will handle whether to show content or empty state)
+    sortedWidgets = allWidgets
+      .sort((a, b) => a.order - b.order)
+      .map(w => w.component);
+  } else {
+    // For public view, filter out null components
+    sortedWidgets = allWidgets
+      .sort((a, b) => a.order - b.order)
+      .map(w => w.component)
+      .filter(Boolean);
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4">
@@ -127,29 +158,37 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   );
 }
 
-export async function generateMetadata({ params }: ProfilePageProps) {
-  const { username } = params;
-  const supabase = await createClient();
+// Commenting out generateMetadata temporarily due to Next.js 15/Turbopack issue
+// export async function generateMetadata({ params }: ProfilePageProps) {
+//   const { username } = params;
+//   const supabase = await createClient();
 
-  const { data: profileData } = await supabase
-    .from('profiles')
-    .select('display_name, bio, job_title, company')
-    .eq('username', username)
-    .maybeSingle();
+//   try {
+//     const { data: profileData } = await supabase
+//       .from('profiles')
+//       .select('display_name, bio, job_title, company')
+//       .eq('username', username)
+//       .maybeSingle();
 
-  if (!profileData) {
-    return {
-      title: 'Profile Not Found',
-    };
-  }
+//     if (!profileData) {
+//       return {
+//         title: 'Profile Not Found',
+//       };
+//     }
 
-  const profile = profileData as Pick<Profile, 'display_name' | 'bio' | 'job_title' | 'company'>;
+//     const profile = profileData as Pick<Profile, 'display_name' | 'bio' | 'job_title' | 'company'>;
 
-  const title = profile.display_name || username;
-  const description = profile.bio || `${profile.job_title || ''} ${profile.company ? `at ${profile.company}` : ''}`.trim();
+//     const title = profile.display_name || username;
+//     const description = profile.bio || `${profile.job_title || ''} ${profile.company ? `at ${profile.company}` : ''}`.trim();
 
-  return {
-    title: `${title} - Digital Business Card`,
-    description: description || `View ${title}'s digital business card`,
-  };
-}
+//     return {
+//       title: `${title} - Digital Business Card`,
+//       description: description || `View ${title}'s digital business card`,
+//     };
+//   } catch (error) {
+//     console.error('Error generating metadata:', error);
+//     return {
+//       title: 'Profile Not Found',
+//     };
+//   }
+// }
