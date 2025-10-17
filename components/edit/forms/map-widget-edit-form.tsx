@@ -24,7 +24,7 @@ import { Database } from '@/lib/database.types';
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface MapWidgetEditFormProps {
-  profile: Profile;
+  profile: Partial<Profile> & { id: string };
   onClose: () => void;
 }
 

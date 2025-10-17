@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { profileSchema } from '@/lib/validations/profile';
@@ -19,7 +20,7 @@ import { Database } from '@/lib/database.types';
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface ProfileWidgetEditFormProps {
-  profile: Profile;
+  profile: Partial<Profile> & { id: string };
   onClose: () => void;
 }
 
@@ -89,10 +90,12 @@ export function ProfileWidgetEditForm({ profile, onClose }: ProfileWidgetEditFor
                 <div className="mt-2">
                   <p className="text-sm text-gray-600 mb-1">Preview:</p>
                   <div className="relative w-32 h-32 rounded-full overflow-hidden bg-gray-200">
-                    <img
+                    <Image
                       src={profileImageUrl}
                       alt="Profile preview"
-                      className="object-cover w-full h-full"
+                      fill
+                      className="object-cover"
+                      sizes="128px"
                     />
                   </div>
                 </div>

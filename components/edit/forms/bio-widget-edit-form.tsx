@@ -19,7 +19,7 @@ import { Database } from '@/lib/database.types';
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface BioWidgetEditFormProps {
-  profile: Profile;
+  profile: Partial<Profile> & { id: string };
   onClose: () => void;
 }
 
@@ -40,7 +40,7 @@ export function BioWidgetEditForm({ profile, onClose }: BioWidgetEditFormProps) 
   const onSubmit = async (data: BioFormData) => {
     setLoading(true);
     try {
-      const result = await updateBio(data.bio);
+      const result = await updateBio(data.bio || '');
       
       if (result.success) {
         toast.success('Bio updated successfully!');

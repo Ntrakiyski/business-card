@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Database } from '@/lib/database.types';
 import { MapPin, ExternalLink, Edit3 } from 'lucide-react';
 import { WidgetEditDrawer } from '@/components/edit/widget-edit-drawer';
+import 'leaflet/dist/leaflet.css';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -14,14 +15,50 @@ interface MapWidgetProps {
   editable?: boolean;
 }
 
+// Type definitions for Leaflet components
+interface LeafletIcon {
+  Default: {
+    prototype: Record<string, unknown>;
+    mergeOptions: (options: Record<string, string>) => void;
+  };
+}
+
+interface LeafletModule {
+  Icon: LeafletIcon;
+}
+
+interface MapContainerProps {
+  center: [number, number];
+  zoom: number;
+  style: React.CSSProperties;
+  scrollWheelZoom: boolean;
+  children?: React.ReactNode;
+}
+
+interface TileLayerProps {
+  attribution: string;
+  url: string;
+}
+
+interface MarkerProps {
+  position: [number, number];
+  children?: React.ReactNode;
+}
+
+interface PopupProps {
+  children?: React.ReactNode;
+}
+
+interface LeafletComponents {
+  MapContainer: React.ComponentType<MapContainerProps>;
+  TileLayer: React.ComponentType<TileLayerProps>;
+  Marker: React.ComponentType<MarkerProps>;
+  Popup: React.ComponentType<PopupProps>;
+}
+
 export function MapWidget({ profile, editable = false }: MapWidgetProps) {
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
-  const [LeafletComponents, setLeafletComponents] = useState<{
-    MapContainer: React.ComponentType<any>;
-    TileLayer: React.ComponentType<any>;
-    Marker: React.ComponentType<any>;
-    Popup: React.ComponentType<any>;
-  } | null>(null);
+  const [LeafletComponents, setLeafletComponents] = useState<LeafletComponents | null>(null);
   const [isClient, setIsClient] = useState(false);
   
   // Run useEffect on mount to set up client-side only
@@ -30,23 +67,22 @@ export function MapWidget({ profile, editable = false }: MapWidgetProps) {
     
     // Dynamically import Leaflet components only on the client
     const loadLeaflet = async () => {
-      const leafletModules = await Promise.all([
+      const [leafletComponents, leaflet] = await Promise.all([
         import('react-leaflet'),
         import('leaflet'),
-        import('leaflet/dist/leaflet.css'),
-      ]) as [any, any, any];
+      ]);
       
-      const [leafletComponents, leaflet] = leafletModules;
+      const leafletModule = leaflet as unknown as LeafletModule;
       
       // Fix for default marker icons in Leaflet with Next.js
-      delete (leaflet.Icon.Default.prototype as { _getIconUrl?: string })._getIconUrl;
-      leaflet.Icon.Default.mergeOptions({
+      delete (leafletModule.Icon.Default.prototype as Record<string, unknown> & { _getIconUrl?: string })._getIconUrl;
+      leafletModule.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
         iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
       });
       
-      setLeafletComponents(leafletComponents);
+      setLeafletComponents(leafletComponents as unknown as LeafletComponents);
     };
     
     loadLeaflet();
@@ -70,15 +106,8 @@ export function MapWidget({ profile, editable = false }: MapWidgetProps) {
         </div>
       );
     }
-
-    const typedLeafletComponents = LeafletComponents as {
-      MapContainer: React.ComponentType<any>;
-      TileLayer: React.ComponentType<any>;
-      Marker: React.ComponentType<any>;
-      Popup: React.ComponentType<any>;
-    };
     
-    const { MapContainer, TileLayer, Marker, Popup } = typedLeafletComponents;
+    const { MapContainer, TileLayer, Marker, Popup } = LeafletComponents;
 
     return (
       <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden mb-3">
@@ -158,4 +187,3 @@ export function MapWidget({ profile, editable = false }: MapWidgetProps) {
     </>
   );
 }
-

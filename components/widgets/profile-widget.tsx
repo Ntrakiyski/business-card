@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Database } from '@/lib/database.types';
@@ -38,13 +39,14 @@ export function ProfileWidget({ profile, editable = false }: ProfileWidgetProps)
         
         <div className="flex flex-col items-center text-center space-y-4 pt-0">
           {/* Profile Image */}
-          <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200">
+          <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 relative">
             {profile.profile_image_url ? (
-              <img
+              <Image
                 src={profile.profile_image_url}
                 alt={profile.display_name || 'Profile'}
-                className="object-cover w-full h-full"
-                loading="lazy"
+                fill
+                className="object-cover"
+                sizes="128px"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
@@ -101,4 +103,3 @@ export function ProfileWidget({ profile, editable = false }: ProfileWidgetProps)
     </>
   );
 }
-

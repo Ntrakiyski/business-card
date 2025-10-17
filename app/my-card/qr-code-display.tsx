@@ -2,13 +2,15 @@
 
 import { QRCodeSVG } from 'qrcode.react';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, Phone } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface QRCodeDisplayProps {
   value: string;
+  phone?: string | null;
 }
 
-export function QRCodeDisplay({ value }: QRCodeDisplayProps) {
+export function QRCodeDisplay({ value, phone }: QRCodeDisplayProps) {
   const handleDownload = () => {
     // Get the SVG element
     const svg = document.getElementById('qr-code-svg');
@@ -29,6 +31,17 @@ export function QRCodeDisplay({ value }: QRCodeDisplayProps) {
     URL.revokeObjectURL(svgUrl);
   };
 
+  const handleCopyPhone = async () => {
+    if (!phone) return;
+    
+    try {
+      await navigator.clipboard.writeText(phone);
+      toast.success('Contact number copied to clipboard!');
+    } catch {
+      toast.error('Failed to copy contact number');
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="bg-white p-6 rounded-lg shadow-sm">
@@ -40,15 +53,26 @@ export function QRCodeDisplay({ value }: QRCodeDisplayProps) {
           includeMargin
         />
       </div>
-      <Button
-        onClick={handleDownload}
-        variant="outline"
-        className="w-full"
-      >
-        <Download className="w-4 h-4 mr-2" />
-        Download QR Code
-      </Button>
+      <div className="w-full space-y-2">
+        {phone && (
+          <Button
+            onClick={handleCopyPhone}
+            variant="default"
+            className="w-full"
+          >
+            <Phone className="w-4 h-4 mr-2" />
+            {phone}
+          </Button>
+        )}
+        <Button
+          onClick={handleDownload}
+          variant="outline"
+          className="w-full"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Download QR Code
+        </Button>
+      </div>
     </div>
   );
 }
-
