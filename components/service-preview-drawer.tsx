@@ -39,11 +39,12 @@ export function ServicePreviewDrawer({ service, open, onOpenChange }: ServicePre
     ? iconMap[service.icon] 
     : iconMap['default'];
 
-  // Parse bullet points from description
-  // Expected format: "• Point 1\n• Point 2\n• Point 3" or JSON array
+  // Use bullet points from the bullets column if available, otherwise fallback to description
   let bulletPoints: string[] = [];
   
-  if (service.description) {
+  if (service.bullets && Array.isArray(service.bullets)) {
+    bulletPoints = service.bullets.map(bullet => String(bullet)).filter(Boolean);
+  } else if (service.description) {
     try {
       // Try parsing as JSON array first
       const parsed = JSON.parse(service.description);

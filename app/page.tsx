@@ -8,7 +8,15 @@ type Profile = Database['public']['Tables']['profiles']['Row'];
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    user = userData.user;
+  } catch (error) {
+    // If there's an auth error, continue without user
+    console.warn('Auth error on home page (likely expired session):', error);
+    user = null;
+  }
 
   // If user is logged in, redirect to their card
   if (user) {

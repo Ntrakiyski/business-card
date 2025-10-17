@@ -22,11 +22,22 @@ interface ServicesWidgetEditFormProps {
 
 export function ServicesWidgetEditForm({ services, profileId, onClose }: ServicesWidgetEditFormProps) {
   const [loading, setLoading] = useState(false);
-  const [editServices, setEditServices] = useState<Service[]>(services);
+  // Define a type for editing services that properly handles bullets as string array
+  type EditableService = Omit<Service, 'bullets'> & { 
+    bullets: string[] | null;
+  };
+
+  const [editServices, setEditServices] = useState<EditableService[]>(services.map(service => ({
+    ...service,
+    bullets: Array.isArray(service.bullets) ? 
+      service.bullets.map(bullet => typeof bullet === 'string' ? bullet : '') 
+      : null
+  })));
   const [newService, setNewService] = useState({ 
     title: '', 
     description: '', 
     icon: '', 
+    bullets: ['', '', ''],
     enabled: true,
     order: services.length 
   });
@@ -43,13 +54,14 @@ export function ServicesWidgetEditForm({ services, profileId, onClose }: Service
       title: newService.title,
       description: newService.description || null,
       icon: newService.icon || null,
+      bullets: newService.bullets || null,
       enabled: newService.enabled,
       order: newService.order,
     });
 
     if (result.success) {
       toast.success('Service added successfully!');
-      setNewService({ title: '', description: '', icon: '', enabled: true, order: services.length + 1 });
+      setNewService({ title: '', description: '', icon: '', bullets: ['', '', ''], enabled: true, order: services.length + 1 });
       // Refresh the page to show the new service
       window.location.reload();
     } else {
@@ -64,6 +76,7 @@ export function ServicesWidgetEditForm({ services, profileId, onClose }: Service
       title: service.title,
       description: service.description,
       icon: service.icon,
+      bullets: service.bullets,
       enabled: service.enabled,
       order: service.order,
     });
@@ -91,7 +104,7 @@ export function ServicesWidgetEditForm({ services, profileId, onClose }: Service
     setLoading(false);
   };
 
-  const updateEditService = (id: string, field: keyof Service, value: string | boolean | number | null) => {
+  const updateEditService = (id: string, field: keyof Service, value: string | boolean | number | null | string[]) => {
     setEditServices(editServices.map(service =>
       service.id === id ? { ...service, [field]: value } : service
     ));
@@ -123,6 +136,26 @@ export function ServicesWidgetEditForm({ services, profileId, onClose }: Service
                       placeholder="Service description..."
                       rows={3}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Bullet Points</Label>
+                    <div className="space-y-2">
+                      {Array.from({ length: 3 }, (_, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-500 w-6">•</span>
+                          <Input
+                            value={service.bullets?.[i] || ''}
+                            onChange={(e) => {
+                              const newBullets = [...(service.bullets || ['', '', ''])];
+                              newBullets[i] = e.target.value;
+                              updateEditService(service.id, 'bullets', newBullets);
+                            }}
+                            placeholder={`Bullet point ${i + 1}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   <div>
@@ -196,6 +229,26 @@ export function ServicesWidgetEditForm({ services, profileId, onClose }: Service
               placeholder="Service description..."
               rows={3}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Bullet Points</Label>
+            <div className="space-y-2">
+              {Array.from({ length: 3 }, (_, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-500 w-6">•</span>
+                  <Input
+                    value={newService.bullets?.[i] || ''}
+                    onChange={(e) => {
+                      const newBullets = [...(newService.bullets || ['', '', ''])];
+                      newBullets[i] = e.target.value;
+                      setNewService({ ...newService, bullets: newBullets });
+                    }}
+                    placeholder={`Bullet point ${i + 1}`}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           <div>

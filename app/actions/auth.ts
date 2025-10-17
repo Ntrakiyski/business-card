@@ -129,31 +129,31 @@ export async function logout(redirectPath: string = '/') {
     throw error
   } finally {
     revalidatePath('/', 'layout')
-    redirect(redirectPath)
+    
+    // Use the NEXT_PUBLIC_APP_URL environment variable if available, otherwise use the default path
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    const finalRedirectPath = appUrl ? `${appUrl}${redirectPath}` : redirectPath;
+    
+    redirect(finalRedirectPath)
   }
 }
 
 export async function signInWithGoogle() {
   const supabase = await createClient()
   
-  try {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-      },
-    })
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/callback`,
+    },
+  })
 
-    if (error) {
-      console.error('Error signing in with Google:', error)
-      throw error
-    }
-
-    if (data.url) {
-      redirect(data.url)
-    }
-  } catch (error) {
-    console.error('Error during Google sign-in:', error)
+  if (error) {
+    console.error('OAuth error:', error)
     throw error
+  }
+
+  if (data.url) {
+    redirect(data.url) // Outside try/catch
   }
 }

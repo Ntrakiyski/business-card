@@ -32,6 +32,15 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'codegen.com',
       },
+      // Allow images from all domains (use with caution in production)
+      {
+        protocol: 'https',
+        hostname: '*',
+      },
+      {
+        protocol: 'http',
+        hostname: '*',
+      },
     ],
   },
 };

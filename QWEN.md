@@ -37,28 +37,46 @@ business-card/
 │   │   └── my-card/         # Owner's QR code view
 │   ├── [username]/          # Public profile pages
 │   ├── actions/             # Server Actions
+│   ├── api/                 # API routes (if any)
 │   ├── layout.tsx
+│   ├── not-found.tsx
 │   └── page.tsx
 ├── components/
+│   ├── edit/                # Edit mode components
+│   │   ├── forms/           # Widget-specific forms
+│   │   └── widget-edit-drawer.tsx
 │   ├── ui/                  # shadcn/ui components
 │   ├── widgets/             # Profile widgets
-│   │   ├── profile-widget.tsx
 │   │   ├── bio-widget.tsx
-│   │   ├── links-widget.tsx
-│   │   ├── social-widget.tsx
-│   │   ├── services-widget.tsx
 │   │   ├── contact-widget.tsx
-│   └── edit/                # Edit mode components
+│   │   ├── links-widget.tsx
+│   │   ├── map-widget.tsx
+│   │   ├── profile-widget.tsx
+│   │   ├── services-widget.tsx
+│   │   └── social-widget.tsx
+│   ├── logout-button.tsx
+│   ├── profile-view-container.tsx
+│   └── service-preview-drawer.tsx
 ├── lib/
 │   ├── supabase/            # Supabase client utilities
 │   │   ├── client.ts        # Browser client
 │   │   └── server.ts        # Server client
-│   ├── database.types.ts    # Generated TypeScript types
-│   ├── vcard-generator.ts   # vCard file generation
-│   └── utils.ts
+│   ├── types/               # TypeScript type definitions
+│   │   └── database.ts      # Generated Supabase types
+│   ├── validations/         # Zod validation schemas
+│   ├── database.types.ts    # Generated TypeScript types (legacy)
+│   ├── utils.ts
+│   └── vcard-generator.ts   # vCard file generation
 ├── supabase/
 │   └── migrations/          # Database migrations
-└── public/
+├── public/
+├── scripts/
+├── tests/                   # Test files
+├── globals.css
+├── middleware.ts            # Authentication middleware
+├── next.config.ts
+├── package.json
+└── README.md
 ```
 
 ## Building and Running
@@ -78,7 +96,7 @@ business-card/
 
 2. **Set up Supabase:**
    - Create a new project at [supabase.com](https://supabase.com)
-   - Run the migration file in your Supabase SQL Editor
+   - Run the migration file in your Supabase SQL Editor (001_initial_schema.sql)
    - Set up Storage buckets (`profile-images` and `link-images`) as public
 
 3. **Configure environment variables:**
@@ -120,6 +138,30 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.supabase.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'media.licdn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.githubusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'codegen.com',
+      },
     ],
   },
 };
@@ -129,13 +171,13 @@ const nextConfig = {
 
 ### Widget System
 Each profile consists of 7 modular widgets:
-1. Profile Widget - Photo, name, title, company, location, Save Contact button
-2. Bio Widget - Personal/professional summary
-3. Links Widget - Horizontal scrollable custom links with images
-4. Social Widget - Social media icons and links
-5. Services Widget - List of services/skills offered
-6. Contact Widget - Phone, email, website, address with tap-to-call/email
-7. Map Widget - Interactive Leaflet map with location pin
+1. **Profile Widget** - Photo, display name, job title, company, location, Save Contact button
+2. **Bio Widget** - Personal/professional summary
+3. **Links Widget** - Horizontal scrollable custom links with images
+4. **Social Widget** - Social media icons and links
+5. **Services Widget** - List of services/skills offered
+6. **Contact Widget** - Phone, email, website, address with tap-to-call/email
+7. **Map Widget** - Interactive Leaflet map with location pin
 
 ### Inline Editing
 - Owners see edit icons on each widget when viewing their own profile
@@ -147,6 +189,7 @@ Each profile consists of 7 modular widgets:
 - Uses Supabase Auth for user authentication
 - Middleware protects routes like `/my-card`, `/login`, `/signup`, and `/onboarding`
 - Implements proper redirects based on user authentication status and onboarding completion
+- Middleware includes checks for profile completion before accessing `/my-card`
 
 ### QR Code Generation
 - Each user has a unique profile URL: `yourapp.com/username`
@@ -173,6 +216,8 @@ Each profile consists of 7 modular widgets:
 - Components organized by functionality (ui, widgets, edit)
 - Server Actions in `app/actions/` directory
 - Supabase utilities in `lib/supabase/`
+- Database types in `lib/types/database.ts`
+- Validation schemas in `lib/validations/`
 - Environment variables properly configured for security
 
 ### Testing
@@ -180,60 +225,114 @@ Each profile consists of 7 modular widgets:
 - Includes mobile screenshot tests
 - Headed and UI test modes available
 
-## Deployment
-
-### Coolify Deployment
-1. Ensure Dockerfile, docker-compose.yml, and next.config.ts are properly configured
-2. Set environment variables (Supabase URL and anon key)
-3. Deploy using Coolify's Docker Compose integration
-
-### Vercel Deployment
-1. Deploy using Vercel's GitHub integration
-2. Add environment variables in Vercel dashboard
-3. Note: Remove `output: 'standalone'` from next.config.ts for Vercel deployment
-
-### Self-Hosted Docker
-```bash
-# Build the image
-docker-compose build
-
-# Start the service
-docker-compose up -d
-```
-
 ## Database Schema
-The application uses 5 main tables:
-- `profiles` - User profile information
-- `custom_links` - Custom link widgets
-- `social_links` - Social media links
-- `services` - Services/skills offered
-- `widget_settings` - Widget visibility and ordering
+The application uses 6 main tables with Row-Level Security (RLS) policies:
 
-All tables have Row-Level Security (RLS) policies enforced for security.
+1. **`profiles`** - User profile information (extends auth.users)
+   - id (UUID, primary key, references auth.users)
+   - username (TEXT, unique, not null)
+   - display_name (TEXT)
+   - job_title (TEXT)
+   - company (TEXT)
+   - location (TEXT)
+   - bio (TEXT)
+   - profile_image_url (TEXT)
+   - email (TEXT)
+   - phone (TEXT)
+   - website (TEXT)
+   - address (TEXT)
+   - latitude (DECIMAL)
+   - longitude (DECIMAL)
+   - created_at (TIMESTAMPTZ)
+   - updated_at (TIMESTAMPTZ)
+
+2. **`custom_links`** - Custom link widgets
+   - id (UUID, primary key)
+   - profile_id (UUID, references profiles, cascade delete)
+   - title (TEXT, not null)
+   - url (TEXT, not null)
+   - image_url (TEXT)
+   - order (INTEGER, default 0)
+   - enabled (BOOLEAN, default true)
+   - created_at (TIMESTAMPTZ)
+
+3. **`social_links`** - Social media links
+   - id (UUID, primary key)
+   - profile_id (UUID, references profiles, cascade delete)
+   - platform (TEXT, not null) - facebook, instagram, twitter, linkedin, youtube, spotify, etc.
+   - url (TEXT, not null)
+   - enabled (BOOLEAN, default true)
+   - created_at (TIMESTAMPTZ)
+
+4. **`services`** - Services/skills offered
+   - id (UUID, primary key)
+   - profile_id (UUID, references profiles, cascade delete)
+   - title (TEXT, not null)
+   - description (TEXT)
+   - icon (TEXT) - icon name or URL
+   - order (INTEGER, default 0)
+   - enabled (BOOLEAN, default true)
+   - created_at (TIMESTAMPTZ)
+
+5. **`widget_settings`** - Widget visibility and ordering
+   - id (UUID, primary key)
+   - profile_id (UUID, references profiles, cascade delete)
+   - widget_type (TEXT, not null) - profile, bio, links, social, services, contact, map
+   - enabled (BOOLEAN, default true)
+   - order (INTEGER, default 0)
+   - created_at (TIMESTAMPTZ)
+   - UNIQUE constraint on (profile_id, widget_type)
+
+6. **`business_cards`** (from older schema) - Legacy table for business card data
+   - id (UUID, primary key)
+   - user_id (UUID, references auth.users, cascade delete)
+   - profile_id (UUID, references profiles, cascade delete)
+   - name (TEXT, not null)
+   - title (TEXT)
+   - company (TEXT)
+   - email (TEXT)
+   - phone (TEXT)
+   - website (TEXT)
+   - address (TEXT)
+   - bio (TEXT)
+   - avatar_url (TEXT)
+   - created_at (TIMESTAMPTZ)
+   - updated_at (TIMESTAMPTZ)
+
+All tables have Row-Level Security (RLS) policies enforced for security:
+- **Profiles**: Public can view profiles, users can manage their own
+- **Custom Links**: Public can view enabled links, users can manage their own
+- **Social Links**: Public can view enabled links, users can manage their own
+- **Services**: Public can view enabled services, users can manage their own
+- **Widget Settings**: Public can view settings, users can manage their own
 
 ## Key Dependencies
 
 ### Core Dependencies
 - `@supabase/supabase-js` - Supabase client
+- `@supabase/ssr` - Supabase server-side rendering utilities
 - `next` - Next.js framework
 - `react` & `react-dom` - React library
 - `zod` - Schema validation
 - `zustand` - State management
 - `leaflet` & `react-leaflet` - Interactive maps
 - `qrcode` & `qrcode.react` - QR code generation
+- `lucide-react` - Icon library
+- `framer-motion` - Animations
 
 ### UI Dependencies
 - `@radix-ui/react-*` - Accessible UI components
-- `lucide-react` - Icon library
-- `tailwind-merge` & `clsx` - Class name management
-- `sonner` - Toast notifications
 - `@hookform/resolvers` & `react-hook-form` - Form handling
+- `vaul` - Bottom sheet drawer components
+- `sonner` - Toast notifications
+- `class-variance-authority`, `clsx` & `tailwind-merge` - Class name management
 
 ### Dev Dependencies
 - `@types/*` - TypeScript type definitions
 - `@playwright/test` - End-to-end testing
 - `@tailwindcss/postcss` - PostCSS plugin for Tailwind
 - `eslint` & `typescript` - Code quality tools
+- `tailwindcss` - Styling framework
 
 ## Environment Variables
 
@@ -247,7 +346,9 @@ The application requires the following environment variables:
 ## Security Considerations
 
 - Authentication and authorization implemented with Supabase Auth
-- Row-Level Security (RLS) policies on all database tables
+- Row-Level Security (RLS) policies on all database tables to control access
 - Server Actions for secure data mutations
 - Proper environment variable handling for sensitive data
 - Middleware protection for authenticated routes
+- Automatic timestamp update triggers to track changes
+- Default widget settings initialization for new profiles

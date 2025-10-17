@@ -13,7 +13,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Return a response that redirects to home page
-    const response = NextResponse.redirect(new URL('/', request.url));
+    // Use the NEXT_PUBLIC_APP_URL environment variable if available, otherwise default to the request URL
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+    const redirectUrl = `${appUrl}/`;
+    const response = NextResponse.redirect(redirectUrl);
     return response;
   } catch (error) {
     console.error('Error during logout:', error);

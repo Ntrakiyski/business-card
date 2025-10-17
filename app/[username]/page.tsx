@@ -27,7 +27,16 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const supabase = await createClient();
 
   // Check if current user is authenticated
-  const { data: { user } } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    user = userData.user;
+  } catch (error) {
+    // If there's an auth error (like invalid refresh token), continue without user
+    // This allows public profiles to still be accessible
+    console.warn('Auth error (likely expired session):', error);
+    user = null;
+  }
 
   // Fetch profile
   const { data: profileData, error: profileError } = await supabase
@@ -158,7 +167,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   }
 
   return (
-    <ProfileViewContainer profile={profile} isOwner={isOwner}>
+    <ProfileViewContainer profile={profile}>
       <div className="min-h-screen bg-gray-100 py-12 px-6 relative">
         {/* Logout button for profile owner */}
         {isOwner && (

@@ -54,9 +54,15 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    user = userData.user;
+  } catch (error) {
+    // If there's an auth error, continue without user
+    console.warn('Auth error in middleware (likely expired session):', error);
+    user = null;
+  }
 
   // Protect /my-card route
   if (request.nextUrl.pathname.startsWith('/my-card')) {

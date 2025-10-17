@@ -11,10 +11,9 @@ type Profile = Database['public']['Tables']['profiles']['Row'];
 interface ProfileViewContainerProps {
   children: React.ReactNode;
   profile: Profile;
-  isOwner: boolean;
 }
 
-export function ProfileViewContainer({ children, profile, isOwner }: ProfileViewContainerProps) {
+export function ProfileViewContainer({ children, profile }: Omit<ProfileViewContainerProps, 'isOwner'>) {
   const [showQR, setShowQR] = useState(false);
 
   const qrUrl = typeof window !== 'undefined' ? window.location.href : '';
