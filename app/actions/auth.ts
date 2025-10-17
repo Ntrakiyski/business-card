@@ -115,7 +115,7 @@ export async function signUp(formData: FormData): Promise<SignUpResult> {
   }
 }
 
-export async function logout(redirectPath: string = '/login') {
+export async function logout(redirectPath: string = '/') {
   const supabase = await createClient()
   
   try {
@@ -128,6 +128,32 @@ export async function logout(redirectPath: string = '/login') {
     console.error('Error during logout:', error)
     throw error
   } finally {
+    revalidatePath('/', 'layout')
     redirect(redirectPath)
+  }
+}
+
+export async function signInWithGoogle() {
+  const supabase = await createClient()
+  
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      },
+    })
+
+    if (error) {
+      console.error('Error signing in with Google:', error)
+      throw error
+    }
+
+    if (data.url) {
+      redirect(data.url)
+    }
+  } catch (error) {
+    console.error('Error during Google sign-in:', error)
+    throw error
   }
 }

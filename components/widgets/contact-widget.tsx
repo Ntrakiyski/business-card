@@ -23,7 +23,7 @@ export function ContactWidget({ profile, editable = false }: ContactWidgetProps)
 
   return (
     <>
-      <Card className="w-full p-6 relative">
+      <Card className="w-full p-8 relative">
         {editable && (
           <Button
             variant="outline"
@@ -118,4 +118,3 @@ export function ContactWidget({ profile, editable = false }: ContactWidgetProps)
     </>
   );
 }
-

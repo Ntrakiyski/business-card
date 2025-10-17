@@ -131,7 +131,7 @@ export function MapWidget({ profile, editable = false }: MapWidgetProps) {
 
   return (
     <>
-      <Card className="w-full p-6 relative">
+      <Card className="w-full p-8 relative">
         {editable && (
           <Button
             variant="outline"

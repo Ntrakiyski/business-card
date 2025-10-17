@@ -23,7 +23,7 @@ export function LinksWidget({ links, editable = false, profileId }: LinksWidgetP
 
   return (
     <>
-      <Card className="w-full p-6 relative">
+      <Card className="w-full p-8 relative">
         {editable && (
           <Button
             variant="outline"

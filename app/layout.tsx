@@ -16,6 +16,24 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Digital Business Card",
   description: "Create and share your digital business card with a QR code",
+  openGraph: {
+    title: "Digital Business Card",
+    description: "Create and share your digital business card with a QR code",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Digital Business Card",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Digital Business Card",
+    description: "Create and share your digital business card with a QR code",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({

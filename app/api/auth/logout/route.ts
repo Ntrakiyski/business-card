@@ -12,8 +12,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Could not log out' }, { status: 500 });
     }
 
-    // Return a response that redirects to login
-    const response = NextResponse.redirect(new URL('/login', request.url));
+    // Return a response that redirects to home page
+    const response = NextResponse.redirect(new URL('/', request.url));
     return response;
   } catch (error) {
     console.error('Error during logout:', error);
