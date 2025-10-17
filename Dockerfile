@@ -1,20 +1,21 @@
 # Stage 1: Install dependencies
-FROM node:20-alpine AS install
+# Use the official lightweight Bun image for a small and fast installation.
+FROM oven/bun:1-alpine AS install
 WORKDIR /usr/src/app
-COPY package.json package-lock.json ./
-# Use npm to install dependencies
-RUN npm ci
+COPY package.json bun.lock ./
+# Use Bun to install dependencies
+RUN bun install --frozen-lockfile
 
 # Stage 2: Build the Next.js application
 FROM install AS builder
 WORKDIR /usr/src/app
 COPY --from=install /usr/src/app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN bun run build
 
 # Stage 3: Production image
 # Start from a clean base image to keep the final image small.
-FROM node:20-alpine AS runner
+FROM oven/bun:1-alpine AS runner
 WORKDIR /usr/src/app
 ENV NODE_ENV=production
 
@@ -27,5 +28,5 @@ COPY --from=builder /usr/src/app/.next/static ./.next/static
 # Expose the default port for the Next.js standalone server.
 EXPOSE 3000
 
-# The standalone output produces a Node.js server script.
+# The standalone output produces a Node.js server script. The oven/bun image includes Node.js.
 CMD ["node", "server.js"]
