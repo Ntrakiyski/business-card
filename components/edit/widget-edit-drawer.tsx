@@ -72,11 +72,11 @@ export function WidgetEditDrawer({
     >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50" />
-        <Drawer.Content className="bg-white flex flex-col rounded-t-3xl h-[90vh] fixed bottom-0 left-0 right-0 z-50 max-w-2xl mx-auto">
-          <div className="p-4 bg-white rounded-t-3xl flex flex-col h-full">
-            <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-4" />
+        <Drawer.Content className="bg-white flex flex-col rounded-t-3xl fixed bottom-0 left-0 right-0 z-50 max-w-2xl mx-auto" style={{ maxHeight: '90dvh' }}>
+          <div className="flex-shrink-0 p-4 bg-white rounded-t-3xl">
+            <div className="mx-auto w-12 h-1.5 rounded-full bg-gray-300 mb-4" />
             
-            <div className="flex justify-between items-center mb-4 flex-shrink-0">
+            <div className="flex justify-between items-center">
               <Drawer.Title className="font-medium text-gray-900">
                 Edit {widgetType.charAt(0).toUpperCase() + widgetType.slice(1)} Widget
               </Drawer.Title>
@@ -89,10 +89,10 @@ export function WidgetEditDrawer({
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            
-            <div className="flex-1 overflow-y-auto overflow-x-hidden">
-              {renderEditForm()}
-            </div>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 pb-4" style={{ minHeight: 0 }}>
+            {renderEditForm()}
           </div>
         </Drawer.Content>
       </Drawer.Portal>
