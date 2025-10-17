@@ -35,36 +35,16 @@ export function QRCodeDisplay({ value, phone }: QRCodeDisplayProps) {
       </div>
       <div className="w-full space-y-3">
         {phone && (
-          <div className="flex gap-3">
-            {/* Primary action: Call */}
-            <Button
-              variant="default"
-              className="flex-1 gap-2"
-              size="lg"
-              onClick={() => {
-                if (typeof window !== 'undefined') {
-                  // Show a message to user about how to call
-                  toast.info('Tap and hold the number to call, or copy and paste it');
-                }
-              }}
-            >
-              <Phone className="w-5 h-5" />
-              <span className="font-medium">Call: {phone}</span>
-            </Button>
-            
-            {/* Secondary action: Copy */}
-            <Button
-              onClick={handleCopyPhone}
-              variant="outline"
-              size="lg"
-              className="px-4"
-              title="Copy phone number"
-            >
-              <Copy className="w-5 h-5" />
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            className="w-full gap-2"
+            size="lg"
+            disabled
+          >
+            <Phone className="w-5 h-5" />
+            <span className="font-medium">{phone}</span>
+          </Button>
         )}
-        {/* Download functionality was removed */}
       </div>
     </div>
   );

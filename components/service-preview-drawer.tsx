@@ -92,10 +92,9 @@ export function ServicePreviewDrawer({ service, open, onOpenChange }: ServicePre
               {bulletPoints.map((point, index) => (
                 point && (
                   <li key={index} className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary mt-0.5">
-                      {index + 1}
+                    <span className="flex-shrink-0 w-2 h-2 rounded-full bg-black mt-2">
                     </span>
-                    <span className="text-gray-700 flex-1 pt-0.5">{point}</span>
+                    <span className="text-gray-700 flex-1">{point}</span>
                   </li>
                 )
               ))}
@@ -112,4 +111,3 @@ export function ServicePreviewDrawer({ service, open, onOpenChange }: ServicePre
     </Drawer>
   );
 }
-
