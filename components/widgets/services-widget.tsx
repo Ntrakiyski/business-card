@@ -47,27 +47,33 @@ export function ServicesWidget({ services, editable = false, profileId }: Servic
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Services</h2>
           
           {services && services.length > 0 ? (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {services.map((service) => {
-                // Try to get icon from iconMap, default to Briefcase
-                const IconComponent = iconMap[service.icon || 'default'] || Briefcase;
+                // Check if the icon is an emoji (not in the iconMap)
+                const isEmoji = service.icon && !iconMap[service.icon];
+                // If it's an emoji, render it as text; otherwise, use the icon component
+                const IconComponent = !isEmoji && service.icon && iconMap[service.icon] 
+                  ? iconMap[service.icon] 
+                  : iconMap['default'];
                 
                 return (
                   <div 
                     key={service.id}
-                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex flex-col items-center text-center p-4 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <IconComponent className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900">{service.title}</h3>
-                      {service.description && (
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                          {service.description}
-                        </p>
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                      {isEmoji ? (
+                        <span className="text-xl">{service.icon}</span>
+                      ) : (
+                        <IconComponent className="w-6 h-6 text-primary" />
                       )}
                     </div>
+                    <h3 className="font-medium text-gray-900 mb-1">{service.title}</h3>
+                    {service.description && (
+                      <p className="text-sm text-gray-600">
+                        {service.description}
+                      </p>
+                    )}
                   </div>
                 );
               })}

@@ -46,7 +46,7 @@ export function LinksWidget({ links, editable = false, profileId }: LinksWidgetP
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-shrink-0 w-64 snap-start"
+                  className="flex-shrink-0 w-[160px] snap-start"
                 >
                   <div className="group relative overflow-hidden rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
                     {/* Image */}

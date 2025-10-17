@@ -72,8 +72,8 @@ export function WidgetEditDrawer({
     >
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50" />
-        <Drawer.Content className="bg-white flex flex-col rounded-t-3xl max-h-[90vh] fixed bottom-0 left-0 right-0 z-50">
-          <div className="p-4 bg-white rounded-t-3xl flex flex-col h-full">
+        <Drawer.Content className="bg-white flex flex-col rounded-t-3xl max-h-[90vh] fixed bottom-0 left-0 right-0 z-50 max-w-2xl mx-auto">
+          <div className="p-4 bg-white rounded-t-3xl flex flex-col h-full max-h-[85vh]">
             <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-4" />
             
             <div className="flex justify-between items-center mb-4">

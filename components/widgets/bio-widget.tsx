@@ -36,7 +36,7 @@ export function BioWidget({ bio, editable = false, profile }: BioWidgetProps) {
         )}
         
         <div className="pt-0">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">About</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">Bio</h2>
           {bio ? (
             <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
               {bio}

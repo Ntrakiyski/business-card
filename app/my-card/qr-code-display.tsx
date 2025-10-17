@@ -44,7 +44,7 @@ export function QRCodeDisplay({ value, phone }: QRCodeDisplayProps) {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-white p-6 rounded-lg shadow-sm flex justify-center">
         <QRCodeSVG
           id="qr-code-svg"
           value={value}
@@ -64,14 +64,7 @@ export function QRCodeDisplay({ value, phone }: QRCodeDisplayProps) {
             {phone}
           </Button>
         )}
-        <Button
-          onClick={handleDownload}
-          variant="outline"
-          className="w-full"
-        >
-          <Download className="w-4 h-4 mr-2" />
-          Download QR Code
-        </Button>
+        {/* Download button is hidden as requested */}
       </div>
     </div>
   );
