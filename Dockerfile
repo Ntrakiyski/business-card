@@ -2,9 +2,9 @@
 # Use the official lightweight Bun image for a small and fast installation.
 FROM oven/bun:1-alpine AS install
 WORKDIR /usr/src/app
-COPY package.json bun.lock ./
-# Use Bun to install dependencies
-RUN bun install --frozen-lockfile
+COPY package.json ./
+# Use Bun to install dependencies and generate fresh lockfile
+RUN bun install
 
 # Stage 2: Build the Next.js application
 FROM install AS builder
