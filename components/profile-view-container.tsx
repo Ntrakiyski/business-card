@@ -20,8 +20,8 @@ export function ProfileViewContainer({ children, profile }: Omit<ProfileViewCont
 
   return (
     <div className="relative">
-      {/* Toggle Button - Top Left */}
-      <div className="absolute top-6 left-6 z-20">
+      {/* Toggle Button - Fixed Top Left */}
+      <div className="fixed top-4 left-4 z-50">
         <Button
           variant="outline"
           size="icon"
@@ -81,4 +81,3 @@ export function ProfileViewContainer({ children, profile }: Omit<ProfileViewCont
     </div>
   );
 }
-
