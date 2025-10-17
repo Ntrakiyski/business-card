@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { QRCodeDisplay } from './qr-code-display';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
-import { ExternalLink, Facebook, Instagram, Twitter, Linkedin, Youtube, Music, Github } from 'lucide-react';
+import { ExternalLink, Facebook, Instagram, Twitter, Linkedin, Youtube, Music, Github, Send, Phone } from 'lucide-react';
 import { Database } from '@/lib/database.types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -57,6 +57,8 @@ export default async function MyCardPage() {
     spotify: Music,
     github: Github,
     tiktok: Music,
+    telegram: Send,
+    whatsapp: Phone,
   };
 
   const socialColors = {
@@ -68,6 +70,8 @@ export default async function MyCardPage() {
     spotify: 'hover:text-[#1DB954]',
     github: 'hover:text-[#181717]',
     tiktok: 'hover:text-[#000000]',
+    telegram: 'hover:text-[#2AABEE]',
+    whatsapp: 'hover:text-[#25D366]',
   };
 
   return (
@@ -113,9 +117,9 @@ export default async function MyCardPage() {
                     return (
                       <a
                         key={link.id}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        href={link.url.startsWith('+') ? `tel:${link.url}` : link.url}
+                        target={link.url.startsWith('+') ? undefined : "_blank"}
+                        rel={link.url.startsWith('+') ? undefined : "noopener noreferrer"}
                         className={`p-3 rounded-full bg-gray-100 text-gray-600 ${colorClass} transition-colors`}
                         aria-label={link.platform}
                       >

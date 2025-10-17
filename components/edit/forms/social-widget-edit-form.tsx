@@ -37,6 +37,8 @@ const SOCIAL_PLATFORMS = [
   { value: 'behance', label: 'Behance' },
   { value: 'dribbble', label: 'Dribbble' },
   { value: 'website', label: 'Website' },
+  { value: 'telegram', label: 'Telegram' },
+  { value: 'whatsapp', label: 'WhatsApp' },
 ];
 
 export function SocialWidgetEditForm({ links, profileId, onClose }: SocialWidgetEditFormProps) {

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Database } from '@/lib/database.types';
-import { Facebook, Instagram, Twitter, Linkedin, Youtube, Music, Github, Edit3 } from 'lucide-react';
+import { Facebook, Instagram, Twitter, Linkedin, Youtube, Music, Github, Edit3, Send, Phone } from 'lucide-react';
 import { WidgetEditDrawer } from '@/components/edit/widget-edit-drawer';
 
 type SocialLink = Database['public']['Tables']['social_links']['Row'];
@@ -24,6 +24,8 @@ const socialIcons = {
   spotify: Music,
   github: Github,
   tiktok: Music, // Using Music as placeholder for TikTok
+  telegram: Send,
+  whatsapp: Phone,
 };
 
 const socialColors = {
@@ -35,6 +37,8 @@ const socialColors = {
   spotify: 'hover:text-[#1DB954]',
   github: 'hover:text-[#181717]',
   tiktok: 'hover:text-[#000000]',
+  telegram: 'hover:text-[#2AABEE]',
+  whatsapp: 'hover:text-[#25D366]',
 };
 
 export function SocialWidget({ links, editable = false, profileId }: SocialWidgetProps) {
@@ -68,9 +72,9 @@ export function SocialWidget({ links, editable = false, profileId }: SocialWidge
                 return (
                   <a
                     key={link.id}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href={link.url.startsWith('+') ? `tel:${link.url}` : link.url}
+                    target={link.url.startsWith('+') ? undefined : "_blank"}
+                    rel={link.url.startsWith('+') ? undefined : "noopener noreferrer"}
                     className={`p-3 rounded-full bg-gray-100 text-gray-600 ${colorClass} transition-colors`}
                     aria-label={link.platform}
                   >

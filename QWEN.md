@@ -174,9 +174,9 @@ Each profile consists of 7 modular widgets:
 1. **Profile Widget** - Photo, display name, job title, company, location, Save Contact button
 2. **Bio Widget** - Personal/professional summary
 3. **Links Widget** - Horizontal scrollable custom links with images
-4. **Social Widget** - Social media icons and links
+4. **Social Widget** - Social media icons and links (including phone numbers that start with + to initiate calls)
 5. **Services Widget** - List of services/skills offered
-6. **Contact Widget** - Phone, email, website, address with tap-to-call/email
+6. **Contact Widget** - Phone, email, website, and address with tap-to-call/email
 7. **Map Widget** - Interactive Leaflet map with location pin
 
 ### Inline Editing
