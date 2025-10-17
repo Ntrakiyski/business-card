@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Database } from '@/lib/database.types';
@@ -50,12 +51,13 @@ export function LinksWidget({ links, editable = false, profileId }: LinksWidgetP
                   <div className="group relative overflow-hidden rounded-lg border border-gray-200 hover:border-gray-300 transition-colors">
                     {/* Image */}
                     {link.image_url && (
-                      <div className="w-full h-36 bg-gray-100 overflow-hidden">
-                        <img
+                      <div className="w-full h-36 bg-gray-100 overflow-hidden relative">
+                        <Image
                           src={link.image_url}
                           alt={link.title}
-                          className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          sizes="256px"
                         />
                       </div>
                     )}
@@ -93,4 +95,3 @@ export function LinksWidget({ links, editable = false, profileId }: LinksWidgetP
     </>
   );
 }
-

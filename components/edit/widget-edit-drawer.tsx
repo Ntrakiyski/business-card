@@ -19,7 +19,7 @@ type Service = Database['public']['Tables']['services']['Row'];
 
 interface WidgetEditDrawerProps {
   widgetType: 'profile' | 'bio' | 'links' | 'social' | 'services' | 'contact' | 'map';
-  profile: Profile;
+  profile: Partial<Profile> & { id: string };
   customLinks?: CustomLink[];
   socialLinks?: SocialLink[];
   services?: Service[];

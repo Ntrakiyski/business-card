@@ -10,6 +10,9 @@ import { MapWidget } from '@/components/widgets/map-widget';
 import { Database } from '@/lib/database.types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
+type CustomLink = Database['public']['Tables']['custom_links']['Row'];
+type SocialLink = Database['public']['Tables']['social_links']['Row'];
+type Service = Database['public']['Tables']['services']['Row'];
 
 interface ProfilePageProps {
   params: {
@@ -38,7 +41,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const profile = profileData as Profile;
 
   // Check if the current user is viewing their own profile
-  const isOwner = user && user.id === profile.id;
+  const isOwner: boolean = !!(user && user.id === profile.id);
 
   // Fetch custom links
   const { data: customLinks } = await supabase
@@ -48,9 +51,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     .order('order', { ascending: true });
 
   // Filter enabled links for public view, but show all for owner
-  const enabledCustomLinks = isOwner 
-    ? customLinks 
-    : (customLinks || []).filter(link => link.enabled);
+  const typedCustomLinks = (customLinks || []) as CustomLink[];
+  const enabledCustomLinks: CustomLink[] = isOwner 
+    ? typedCustomLinks
+    : typedCustomLinks.filter(link => link.enabled);
 
   // Fetch social links
   const { data: socialLinks } = await supabase
@@ -59,9 +63,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     .eq('profile_id', profile.id);
 
   // Filter enabled links for public view, but show all for owner
-  const enabledSocialLinks = isOwner 
-    ? socialLinks 
-    : (socialLinks || []).filter(link => link.enabled);
+  const typedSocialLinks = (socialLinks || []) as SocialLink[];
+  const enabledSocialLinks: SocialLink[] = isOwner 
+    ? typedSocialLinks
+    : typedSocialLinks.filter(link => link.enabled);
 
   // Fetch services
   const { data: services } = await supabase
@@ -71,9 +76,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     .order('order', { ascending: true });
 
   // Filter enabled services for public view, but show all for owner
-  const enabledServices = isOwner 
-    ? services 
-    : (services || []).filter(service => service.enabled);
+  const typedServices = (services || []) as Service[];
+  const enabledServices: Service[] = isOwner 
+    ? typedServices
+    : typedServices.filter(service => service.enabled);
 
   // Fetch widget settings to determine order and visibility
   const { data: widgetSettingsData } = await supabase
@@ -104,7 +110,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     { 
       type: 'bio', 
       order: widgetOrder['bio'] ?? 2, 
-      component: <BioWidget key="bio" bio={profile.bio} profile={profile} editable={isOwner} /> 
+      component: <BioWidget key="bio" bio={profile.bio ?? undefined} profile={profile} editable={isOwner} /> 
     },
     { 
       type: 'links', 
