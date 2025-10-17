@@ -2,7 +2,7 @@
 
 import { QRCodeSVG } from 'qrcode.react';
 import { Button } from '@/components/ui/button';
-import { Download, Phone } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface QRCodeDisplayProps {
@@ -11,26 +11,6 @@ interface QRCodeDisplayProps {
 }
 
 export function QRCodeDisplay({ value, phone }: QRCodeDisplayProps) {
-  const handleDownload = () => {
-    // Get the SVG element
-    const svg = document.getElementById('qr-code-svg');
-    if (!svg) return;
-
-    // Convert SVG to data URL
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-    const svgUrl = URL.createObjectURL(svgBlob);
-
-    // Create download link
-    const downloadLink = document.createElement('a');
-    downloadLink.href = svgUrl;
-    downloadLink.download = 'qr-code.svg';
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-    URL.revokeObjectURL(svgUrl);
-  };
-
   const handleCopyPhone = async () => {
     if (!phone) return;
     
@@ -64,7 +44,7 @@ export function QRCodeDisplay({ value, phone }: QRCodeDisplayProps) {
             {phone}
           </Button>
         )}
-        {/* Download button is hidden as requested */}
+        {/* Download functionality was removed */}
       </div>
     </div>
   );

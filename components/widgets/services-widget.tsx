@@ -59,7 +59,7 @@ export function ServicesWidget({ services, editable = false, profileId }: Servic
                 return (
                   <div 
                     key={service.id}
-                    className="flex flex-col items-center text-center p-4 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex flex-col items-center text-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
                   >
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
                       {isEmoji ? (
