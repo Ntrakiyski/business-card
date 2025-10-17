@@ -7,6 +7,7 @@ import { SocialWidget } from '@/components/widgets/social-widget';
 import { ServicesWidget } from '@/components/widgets/services-widget';
 import { ContactWidget } from '@/components/widgets/contact-widget';
 import { MapWidget } from '@/components/widgets/map-widget';
+import { LogoutButton } from '@/components/logout-button';
 import { Database } from '@/lib/database.types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -156,8 +157,15 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
-      <div className="max-w-2xl mx-auto space-y-4">
+    <div className="min-h-screen bg-gray-100 py-12 px-6 relative">
+      {/* Logout button for profile owner */}
+      {isOwner && (
+        <div className="absolute top-6 right-6 z-10">
+          <LogoutButton />
+        </div>
+      )}
+      
+      <div className="max-w-2xl mx-auto space-y-6">
         {sortedWidgets}
       </div>
     </div>

@@ -115,7 +115,7 @@ export async function signUp(formData: FormData): Promise<SignUpResult> {
   }
 }
 
-export async function logout(redirectPath: string = '/login') {
+export async function logout(redirectPath: string = '/') {
   const supabase = await createClient()
   
   try {
@@ -128,6 +128,7 @@ export async function logout(redirectPath: string = '/login') {
     console.error('Error during logout:', error)
     throw error
   } finally {
+    revalidatePath('/', 'layout')
     redirect(redirectPath)
   }
 }

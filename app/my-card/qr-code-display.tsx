@@ -2,7 +2,7 @@
 
 import { QRCodeSVG } from 'qrcode.react';
 import { Button } from '@/components/ui/button';
-import { Phone } from 'lucide-react';
+import { Phone, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface QRCodeDisplayProps {
@@ -23,8 +23,8 @@ export function QRCodeDisplay({ value, phone }: QRCodeDisplayProps) {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white p-6 rounded-lg shadow-sm flex justify-center">
+    <div className="space-y-6">
+      <div className="bg-white p-8 rounded-lg shadow-sm flex justify-center">
         <QRCodeSVG
           id="qr-code-svg"
           value={value}
@@ -33,16 +33,35 @@ export function QRCodeDisplay({ value, phone }: QRCodeDisplayProps) {
           includeMargin
         />
       </div>
-      <div className="w-full space-y-2">
+      <div className="w-full space-y-3">
         {phone && (
-          <Button
-            onClick={handleCopyPhone}
-            variant="default"
-            className="w-full"
-          >
-            <Phone className="w-4 h-4 mr-2" />
-            {phone}
-          </Button>
+          <div className="flex gap-3">
+            {/* Primary action: Call */}
+            <a
+              href={`tel:${phone}`}
+              className="flex-1"
+            >
+              <Button
+                variant="default"
+                className="w-full gap-2"
+                size="lg"
+              >
+                <Phone className="w-5 h-5" />
+                <span className="font-medium">Call: {phone}</span>
+              </Button>
+            </a>
+            
+            {/* Secondary action: Copy */}
+            <Button
+              onClick={handleCopyPhone}
+              variant="outline"
+              size="lg"
+              className="px-4"
+              title="Copy phone number"
+            >
+              <Copy className="w-5 h-5" />
+            </Button>
+          </div>
         )}
         {/* Download functionality was removed */}
       </div>
