@@ -6,8 +6,9 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Database } from '@/lib/database.types';
 import { downloadVCard } from '@/lib/vcard-generator';
-import { MapPin, User, Edit3 } from 'lucide-react';
+import { MapPin, User, Edit3, Share2 } from 'lucide-react';
 import { WidgetEditDrawer } from '@/components/edit/widget-edit-drawer';
+import { toast } from 'sonner';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -21,6 +22,31 @@ export function ProfileWidget({ profile, editable = false }: ProfileWidgetProps)
   
   const handleSaveContact = () => {
     downloadVCard(profile);
+  };
+
+  const handleShareContact = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: profile.display_name || profile.username,
+          text: `Check out ${profile.display_name || profile.username}'s digital business card`,
+          url: window.location.href,
+        });
+        toast.success('Shared successfully!');
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          toast.error('Failed to share');
+        }
+      }
+    } else {
+      // Fallback to copying link
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success('Link copied to clipboard!');
+      } catch {
+        toast.error('Failed to copy link');
+      }
+    }
   };
 
   return (
@@ -80,13 +106,22 @@ export function ProfileWidget({ profile, editable = false }: ProfileWidgetProps)
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 w-full pt-2">
+          <div className="space-y-3 w-full pt-2">
             <Button 
               onClick={handleSaveContact}
-              className="flex-1"
+              className="w-full"
               size="lg"
             >
               Save Contact
+            </Button>
+            <Button 
+              onClick={handleShareContact}
+              variant="outline"
+              className="w-full"
+              size="lg"
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Share Contact
             </Button>
           </div>
         </div>

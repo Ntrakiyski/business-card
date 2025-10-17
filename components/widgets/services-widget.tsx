@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Database } from '@/lib/database.types';
 import { Briefcase, Code, Cpu, Zap, Edit3 } from 'lucide-react';
 import { WidgetEditDrawer } from '@/components/edit/widget-edit-drawer';
+import { ServicePreviewDrawer } from '@/components/service-preview-drawer';
 
 type Service = Database['public']['Tables']['services']['Row'];
 
@@ -26,6 +27,15 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 
 export function ServicesWidget({ services, editable = false, profileId }: ServicesWidgetProps) {
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [isPreviewDrawerOpen, setIsPreviewDrawerOpen] = useState(false);
+
+  const handleServiceClick = (service: Service) => {
+    if (!editable) {
+      setSelectedService(service);
+      setIsPreviewDrawerOpen(true);
+    }
+  };
 
   if ((!services || services.length === 0) && !editable) return null;
 
@@ -57,9 +67,11 @@ export function ServicesWidget({ services, editable = false, profileId }: Servic
                   : iconMap['default'];
                 
                 return (
-                  <div 
+                  <button 
                     key={service.id}
-                    className="flex flex-col items-center text-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                    onClick={() => handleServiceClick(service)}
+                    className="flex flex-col items-center text-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors w-full"
+                    disabled={editable}
                   >
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
                       {isEmoji ? (
@@ -70,11 +82,11 @@ export function ServicesWidget({ services, editable = false, profileId }: Servic
                     </div>
                     <h3 className="font-medium text-gray-900 mb-1">{service.title}</h3>
                     {service.description && (
-                      <p className="text-sm text-gray-600">
-                        {service.description}
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {service.description.substring(0, 50)}...
                       </p>
                     )}
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -95,6 +107,12 @@ export function ServicesWidget({ services, editable = false, profileId }: Servic
           onOpenChange={setIsEditDrawerOpen}
         />
       )}
+
+      <ServicePreviewDrawer
+        service={selectedService}
+        open={isPreviewDrawerOpen}
+        onOpenChange={setIsPreviewDrawerOpen}
+      />
     </>
   );
 }
