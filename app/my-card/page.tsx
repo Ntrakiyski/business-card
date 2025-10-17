@@ -37,10 +37,12 @@ export default async function MyCardPage() {
   }
 
   // Get social links
-  const { data: socialLinks } = await supabase
+  const { data: socialLinksData } = await supabase
     .from('social_links')
     .select('*')
     .eq('profile_id', user.id);
+  
+  const socialLinks = (socialLinksData || []) as SocialLink[];
 
   // Generate the full profile URL
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';

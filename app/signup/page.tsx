@@ -6,23 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { signUp, signInWithGoogle } from '@/app/actions/auth'
+import { signUp } from '@/app/actions/auth'
 import { toast } from 'sonner'
 
 export default function SignUpPage() {
   const [loading, setLoading] = useState(false)
-  const [googleLoading, setGoogleLoading] = useState(false)
-
-  async function handleGoogleSignIn() {
-    setGoogleLoading(true)
-    try {
-      await signInWithGoogle()
-    } catch (error) {
-      toast.error('Failed to sign in with Google. Please try again.')
-      console.error('Google sign-in error:', error)
-      setGoogleLoading(false)
-    }
-  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -101,7 +89,7 @@ export default function SignUpPage() {
                 minLength={8}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading || googleLoading}>
+            <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Creating account...' : 'Sign Up'}
             </Button>
           </form>

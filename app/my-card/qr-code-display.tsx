@@ -2,8 +2,7 @@
 
 import { QRCodeSVG } from 'qrcode.react';
 import { Button } from '@/components/ui/button';
-import { Phone, Copy } from 'lucide-react';
-import { toast } from 'sonner';
+import { Phone } from 'lucide-react';
 
 interface QRCodeDisplayProps {
   value: string;
@@ -11,16 +10,6 @@ interface QRCodeDisplayProps {
 }
 
 export function QRCodeDisplay({ value, phone }: QRCodeDisplayProps) {
-  const handleCopyPhone = async () => {
-    if (!phone) return;
-    
-    try {
-      await navigator.clipboard.writeText(phone);
-      toast.success('Contact number copied to clipboard!');
-    } catch {
-      toast.error('Failed to copy contact number');
-    }
-  };
 
   return (
     <div className="space-y-6">
