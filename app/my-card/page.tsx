@@ -4,7 +4,7 @@ import { QRCodeDisplay } from './qr-code-display';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
 import { ExternalLink } from 'lucide-react';
-import { Database } from '@/lib/types/database';
+import { Database } from '@/lib/database.types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -47,7 +47,7 @@ export default async function MyCardPage() {
             {/* Header */}
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {profile.full_name || profile.username}
+                {profile.display_name || profile.username}
               </h1>
               <p className="text-sm text-gray-600 mt-1">
                 @{profile.username}
@@ -55,7 +55,7 @@ export default async function MyCardPage() {
             </div>
 
             {/* QR Code */}
-            <QRCodeDisplay value={profileUrl} />
+            <QRCodeDisplay value={profileUrl} phone={profile.phone} />
 
             {/* Instructions */}
             <div className="space-y-2">
