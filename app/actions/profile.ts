@@ -70,27 +70,22 @@ export async function setUsername(formData: FormData): Promise<SetUsernameResult
       }
     }
 
-    // Insert or update profile
-    const profileData: Database['public']['Tables']['profiles']['Insert'] = {
-      id: user.id,
+    // Create first profile for the user
+    const profileData = {
+      user_id: user.id,
       username: validatedFields.data.username,
+      card_name: 'My Card',
+      is_primary: true,
+      is_public: true,
     }
     
-    // Try to insert the profile first
+    // Try to insert the profile
     const { error: insertError } = await supabase
       .from('profiles')
       // @ts-expect-error - Supabase type inference issue with insert
       .insert([profileData]);
 
-    let updateError = null;
-    if (insertError && insertError.code === '23505') { // Unique violation means profile already exists
-      // Profile exists, so update it instead
-      ({ error: updateError } = await supabase
-        .from('profiles')
-        // @ts-expect-error - Supabase type inference issue with update
-        .update({ username: validatedFields.data.username })
-        .eq('id', user.id));
-    } else if (insertError) {
+    if (insertError) {
       console.error('Error inserting profile:', insertError);
       return {
         success: false,
@@ -98,19 +93,12 @@ export async function setUsername(formData: FormData): Promise<SetUsernameResult
       }
     }
 
-    if (updateError) {
-      console.error('Error updating profile:', updateError);
-      return {
-        success: false,
-        error: { general: ['Failed to update username. Please try again.'] },
-      }
-    }
-
-    // Verify that the profile was created/updated
+    // Verify that the profile was created
     const { data: profile, error: fetchError } = await supabase
       .from('profiles')
       .select('id, username')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
+      .eq('username', validatedFields.data.username)
       .single();
     
     // @ts-expect-error - Supabase type inference issue
@@ -126,7 +114,7 @@ export async function setUsername(formData: FormData): Promise<SetUsernameResult
     // Return success so the client can handle the redirect
     return {
       success: true,
-      redirectUrl: '/my-card'
+      redirectUrl: '/home'
     }
   } catch (error) {
     console.error('Error setting username:', error)

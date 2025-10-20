@@ -41,7 +41,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   // Fetch profile
   const { data: profileData, error: profileError } = await supabase
     .from('profiles')
-    .select('*')
+    .select('*, user_id')
     .eq('username', username)
     .maybeSingle();
 
@@ -49,10 +49,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     notFound();
   }
 
-  const profile = profileData as Profile;
+  const profile = profileData as Profile & { user_id: string };
 
   // Check if the current user is viewing their own profile
-  const isOwner: boolean = !!(user && user.id === profile.id);
+  const isOwner: boolean = !!(user && user.id === profile.user_id);
 
   // Fetch custom links
   const { data: customLinks } = await supabase
