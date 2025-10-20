@@ -5,7 +5,7 @@ import { PublicDirectoryTable } from '@/components/home/public-directory-table';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
-import { LogoutButton } from '@/components/logout-button';
+import { AppLayout } from '@/components/layout/app-layout';
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -34,53 +34,53 @@ export default async function HomePage() {
     .limit(50);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-            </div>
-            <div className="flex items-center gap-4">
-              <Button asChild>
-                <Link href="/create-card/step-1">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create New Card
-                </Link>
-              </Button>
-              <LogoutButton />
+    <AppLayout>
+      <div className="min-h-full">
+        {/* Header */}
+        <div className="bg-white border-b">
+          <div className="container mx-auto px-6 py-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              </div>
+              <div className="flex items-center gap-4">
+                <Button asChild>
+                  <Link href="/create-card/step-1">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create New Card
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="container mx-auto px-6 py-8 space-y-12">
-        {/* My Cards Section */}
-        <section>
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">My Cards</h2>
+        <div className="container mx-auto px-6 py-8 space-y-12">
+          {/* My Cards Section */}
+          <section>
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">My Cards</h2>
+                <p className="text-gray-600 mt-1">
+                  Manage your business cards and create new ones
+                </p>
+              </div>
+            </div>
+            <MyCardsSection cards={userCards || []} />
+          </section>
+
+          {/* Public Directory Section */}
+          <section id="explore">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Public Directory</h2>
               <p className="text-gray-600 mt-1">
-                Manage your business cards and create new ones
+                Explore business cards from professionals around the world
               </p>
             </div>
-          </div>
-          <MyCardsSection cards={userCards || []} />
-        </section>
-
-        {/* Public Directory Section */}
-        <section>
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Public Directory</h2>
-            <p className="text-gray-600 mt-1">
-              Explore business cards from professionals around the world
-            </p>
-          </div>
-          <PublicDirectoryTable cards={publicCards || []} />
-        </section>
+            <PublicDirectoryTable cards={publicCards || []} />
+          </section>
+        </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }
-

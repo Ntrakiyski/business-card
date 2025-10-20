@@ -13,7 +13,6 @@ interface SocialWidgetProps {
   links: SocialLink[];
   editable?: boolean;
   profileId?: string;
-  widgetSettings?: Database["public"]["Tables"]["widget_settings"]["Row"];
 }
 
 const socialIcons = {

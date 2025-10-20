@@ -2,21 +2,22 @@
 
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Edit3 } from 'lucide-react';
 import { WidgetEditDrawer } from '@/components/edit/widget-edit-drawer';
+import { WidgetHeader } from './widget-header';
 
 import { Database } from '@/lib/database.types';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
+type WidgetSettings = Database['public']['Tables']['widget_settings']['Row'];
 
 interface BioWidgetProps {
   bio?: string;
   editable?: boolean;
   profile?: Profile;
+  widgetSettings?: WidgetSettings;
 }
 
-export function BioWidget({ bio, editable = false, profile }: BioWidgetProps) {
+export function BioWidget({ bio, editable = false, profile, widgetSettings }: BioWidgetProps) {
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
 
   if (!bio && !editable) return null;
@@ -24,15 +25,13 @@ export function BioWidget({ bio, editable = false, profile }: BioWidgetProps) {
   return (
     <>
       <Card className="w-full p-8 relative">
-        {editable && (
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute top-4 right-4 h-8 w-8"
-            onClick={() => setIsEditDrawerOpen(true)}
-          >
-            <Edit3 className="h-4 w-4" />
-          </Button>
+        {editable && widgetSettings && profile && (
+          <WidgetHeader
+            profileId={profile.id}
+            widgetType={widgetSettings.widget_type}
+            enabled={widgetSettings.enabled}
+            onEdit={() => setIsEditDrawerOpen(true)}
+          />
         )}
         
         <div className="pt-0">
@@ -60,4 +59,3 @@ export function BioWidget({ bio, editable = false, profile }: BioWidgetProps) {
     </>
   );
 }
-
