@@ -268,3 +268,100 @@ export async function deleteService(id: string) {
     return { success: false, error: 'Failed to delete service' };
   }
 }
+
+// ============================================
+// WIDGET SETTINGS ACTIONS
+// ============================================
+
+export async function toggleWidgetVisibility(profileId: string, widgetType: string, enabled: boolean) {
+  try {
+    const supabase = await createClient();
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { success: false, error: 'Not authenticated' };
+    }
+
+    // Verify user owns this profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('user_id, username')
+      .eq('id', profileId)
+      .single() as { data: { user_id: string; username: string } | null };
+
+    if (!profile || profile.user_id !== user.id) {
+      return { success: false, error: 'Not authorized' };
+    }
+
+    const { error } = await supabase
+      .from('widget_settings')
+      // @ts-expect-error - Supabase type inference issue with update
+      .update({ enabled })
+      .eq('profile_id', profileId)
+      .eq('widget_type', widgetType);
+
+    if (error) {
+      console.error('Toggle widget visibility error:', error);
+      return { success: false, error: 'Failed to update widget visibility' };
+    }
+
+    // Revalidate the profile page
+    if (profile.username) {
+      revalidatePath(`/${profile.username}`, 'page');
+    }
+    revalidatePath('/home', 'page');
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Toggle widget visibility error:', error);
+    return { success: false, error: 'Failed to update widget visibility' };
+  }
+}
+
+// ============================================
+// PROFILE VISIBILITY ACTIONS
+// ============================================
+
+export async function toggleProfilePublic(profileId: string, isPublic: boolean) {
+  try {
+    const supabase = await createClient();
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { success: false, error: 'Not authenticated' };
+    }
+
+    // Verify user owns this profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('user_id, username')
+      .eq('id', profileId)
+      .single() as { data: { user_id: string; username: string } | null };
+
+    if (!profile || profile.user_id !== user.id) {
+      return { success: false, error: 'Not authorized' };
+    }
+
+    const { error } = await supabase
+      .from('profiles')
+      // @ts-expect-error - Supabase type inference issue with update
+      .update({ is_public: isPublic })
+      .eq('id', profileId);
+
+    if (error) {
+      console.error('Toggle profile public error:', error);
+      return { success: false, error: 'Failed to update profile visibility' };
+    }
+
+    // Revalidate the profile page
+    if (profile.username) {
+      revalidatePath(`/${profile.username}`, 'page');
+    }
+    revalidatePath('/home', 'page');
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Toggle profile public error:', error);
+    return { success: false, error: 'Failed to update profile visibility' };
+  }
+}

@@ -12,7 +12,6 @@ type Profile = Database['public']['Tables']['profiles']['Row'];
 interface ContactWidgetProps {
   profile: Profile;
   editable?: boolean;
-  widgetSettings?: Database["public"]["Tables"]["widget_settings"]["Row"];
 }
 
 export function ContactWidget({ profile, editable = false }: ContactWidgetProps) {

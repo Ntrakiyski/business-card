@@ -6,18 +6,21 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Database } from '@/lib/database.types';
 import { downloadVCard } from '@/lib/vcard-generator';
-import { MapPin, User, Edit3, Share2 } from 'lucide-react';
+import { MapPin, User, Share2 } from 'lucide-react';
 import { WidgetEditDrawer } from '@/components/edit/widget-edit-drawer';
+import { WidgetHeader } from './widget-header';
 import { toast } from 'sonner';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
+type WidgetSettings = Database['public']['Tables']['widget_settings']['Row'];
 
 interface ProfileWidgetProps {
   profile: Profile;
   editable?: boolean;
+  widgetSettings?: WidgetSettings;
 }
 
-export function ProfileWidget({ profile, editable = false }: ProfileWidgetProps) {
+export function ProfileWidget({ profile, editable = false, widgetSettings }: ProfileWidgetProps) {
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
   
   const handleSaveContact = () => {
@@ -52,15 +55,13 @@ export function ProfileWidget({ profile, editable = false }: ProfileWidgetProps)
   return (
     <>
       <Card className="w-full p-8 relative">
-        {editable && (
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute top-4 right-4 h-8 w-8"
-            onClick={() => setIsEditDrawerOpen(true)}
-          >
-            <Edit3 className="h-4 w-4" />
-          </Button>
+        {editable && widgetSettings && (
+          <WidgetHeader
+            profileId={profile.id}
+            widgetType={widgetSettings.widget_type}
+            enabled={widgetSettings.enabled}
+            onEdit={() => setIsEditDrawerOpen(true)}
+          />
         )}
         
         <div className="flex flex-col items-center text-center space-y-4 pt-0">

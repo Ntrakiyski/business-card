@@ -14,7 +14,6 @@ interface ServicesWidgetProps {
   services: Service[];
   editable?: boolean;
   profileId?: string;
-  widgetSettings?: Database["public"]["Tables"]["widget_settings"]["Row"];
 }
 
 // Default icon mapping for common service types

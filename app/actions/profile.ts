@@ -178,7 +178,20 @@ export async function updateProfile(data: ProfileUpdateData): Promise<UpdateProf
       }
     }
 
+    // Get the username to revalidate the specific profile page
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', user.id)
+      .maybeSingle() as { data: { username: string } | null };
+
+    // Revalidate the specific profile page and layout
+    if (profileData?.username) {
+      revalidatePath(`/${profileData.username}`, 'page');
+    }
+    revalidatePath('/home', 'page');
     revalidatePath('/', 'layout');
+    
     return {
       success: true,
     }

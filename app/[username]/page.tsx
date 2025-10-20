@@ -9,9 +9,14 @@ import { ContactWidget } from '@/components/widgets/contact-widget';
 import { MapWidget } from '@/components/widgets/map-widget';
 import { LogoutButton } from '@/components/logout-button';
 import { ProfileViewContainer } from '@/components/profile-view-container';
+import { PublicToggle } from '@/components/profile/public-toggle';
 import { Database } from '@/lib/database.types';
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
+// Force dynamic rendering to always fetch fresh data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+type Profile = Database['public']['Tables']['profiles']['Row'] & { is_public?: boolean };
 type CustomLink = Database['public']['Tables']['custom_links']['Row'];
 type SocialLink = Database['public']['Tables']['social_links']['Row'];
 type Service = Database['public']['Tables']['services']['Row'];
@@ -41,7 +46,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   // Fetch profile
   const { data: profileData, error: profileError } = await supabase
     .from('profiles')
-    .select('*, user_id')
+    .select('*')
     .eq('username', username)
     .maybeSingle();
 
@@ -99,54 +104,90 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     .eq('profile_id', profile.id)
     .order('order', { ascending: true });
 
-  // Filter enabled widgets for public view, but show all for owner
+  // Show all widget settings for owner, only enabled for public
   const allWidgetSettings = (widgetSettingsData || []) as Database['public']['Tables']['widget_settings']['Row'][];
-  const enabledWidgetSettings = isOwner 
-    ? allWidgetSettings 
-    : allWidgetSettings.filter(setting => setting.enabled);
 
-  // Create a map of widget type to order
-  const widgetOrder: Record<string, number> = {};
-  enabledWidgetSettings.forEach((setting) => {
-    widgetOrder[setting.widget_type] = setting.order;
+  // Create a map of widget type to settings
+  const widgetSettingsMap: Record<string, typeof allWidgetSettings[0]> = {};
+  allWidgetSettings.forEach((setting) => {
+    widgetSettingsMap[setting.widget_type] = setting;
   });
 
   // Define all widgets with their components
   const allWidgets = [
     { 
       type: 'profile', 
-      order: widgetOrder['profile'] ?? 1, 
-      component: <ProfileWidget key="profile" profile={profile} editable={isOwner} /> 
+      order: widgetSettingsMap['profile']?.order ?? 1, 
+      component: <ProfileWidget 
+        key="profile" 
+        profile={profile} 
+        editable={isOwner}
+        widgetSettings={widgetSettingsMap['profile']}
+      /> 
     },
     { 
       type: 'bio', 
-      order: widgetOrder['bio'] ?? 2, 
-      component: <BioWidget key="bio" bio={profile.bio ?? undefined} profile={profile} editable={isOwner} /> 
+      order: widgetSettingsMap['bio']?.order ?? 2, 
+      component: <BioWidget 
+        key="bio" 
+        bio={profile.bio ?? undefined} 
+        profile={profile} 
+        editable={isOwner}
+        widgetSettings={widgetSettingsMap['bio']}
+      /> 
     },
     { 
       type: 'links', 
-      order: widgetOrder['links'] ?? 3, 
-      component: <LinksWidget key="links" links={enabledCustomLinks || []} profileId={profile.id} editable={isOwner} /> 
+      order: widgetSettingsMap['links']?.order ?? 3, 
+      component: <LinksWidget 
+        key="links" 
+        links={enabledCustomLinks || []} 
+        profileId={profile.id} 
+        editable={isOwner}
+        widgetSettings={widgetSettingsMap['links']}
+      /> 
     },
     { 
       type: 'social', 
-      order: widgetOrder['social'] ?? 4, 
-      component: <SocialWidget key="social" links={enabledSocialLinks || []} profileId={profile.id} editable={isOwner} /> 
+      order: widgetSettingsMap['social']?.order ?? 4, 
+      component: <SocialWidget 
+        key="social" 
+        links={enabledSocialLinks || []} 
+        profileId={profile.id} 
+        editable={isOwner}
+        widgetSettings={widgetSettingsMap['social']}
+      /> 
     },
     { 
       type: 'services', 
-      order: widgetOrder['services'] ?? 5, 
-      component: <ServicesWidget key="services" services={enabledServices || []} profileId={profile.id} editable={isOwner} /> 
+      order: widgetSettingsMap['services']?.order ?? 5, 
+      component: <ServicesWidget 
+        key="services" 
+        services={enabledServices || []} 
+        profileId={profile.id} 
+        editable={isOwner}
+        widgetSettings={widgetSettingsMap['services']}
+      /> 
     },
     { 
       type: 'contact', 
-      order: widgetOrder['contact'] ?? 6, 
-      component: <ContactWidget key="contact" profile={profile} editable={isOwner} /> 
+      order: widgetSettingsMap['contact']?.order ?? 6, 
+      component: <ContactWidget 
+        key="contact" 
+        profile={profile} 
+        editable={isOwner}
+        widgetSettings={widgetSettingsMap['contact']}
+      /> 
     },
     { 
       type: 'map', 
-      order: widgetOrder['map'] ?? 7, 
-      component: <MapWidget key="map" profile={profile} editable={isOwner} /> 
+      order: widgetSettingsMap['map']?.order ?? 7, 
+      component: <MapWidget 
+        key="map" 
+        profile={profile} 
+        editable={isOwner}
+        widgetSettings={widgetSettingsMap['map']}
+      /> 
     },
   ];
 
@@ -177,6 +218,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         )}
         
         <div className="max-w-2xl mx-auto space-y-6">
+          {/* Public/Private Toggle for owner */}
+          {isOwner && (
+            <PublicToggle profileId={profile.id} isPublic={profile.is_public ?? true} />
+          )}
+          
           {sortedWidgets}
         </div>
       </div>
