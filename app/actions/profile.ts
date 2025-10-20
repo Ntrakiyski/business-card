@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { usernameSchema } from '@/lib/validations/profile'
 import { z } from 'zod';
-import { Database } from '@/lib/database.types';
 
 import { profileSchema, bioSchema } from '@/lib/validations/profile';
 
