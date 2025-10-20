@@ -74,7 +74,7 @@ export async function middleware(request: NextRequest) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('id, username')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .maybeSingle();
 
     console.log('Debug - Middleware /my-card check:', { 
@@ -95,12 +95,37 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Protect /home route
+  if (request.nextUrl.pathname.startsWith('/home')) {
+    if (!user) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    // Check if user has completed onboarding
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, username')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (!profile || !profile.username) {
+      return NextResponse.redirect(new URL('/onboarding', request.url));
+    }
+  }
+
+  // Protect /create-card routes
+  if (request.nextUrl.pathname.startsWith('/create-card')) {
+    if (!user) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+  }
+
   // Protect onboarding route - redirect if already has username
   if (user && request.nextUrl.pathname.startsWith('/onboarding')) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('id, username')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .maybeSingle();
 
     console.log('Debug - Onboarding route check:', { 
@@ -109,12 +134,12 @@ export async function middleware(request: NextRequest) {
       pathname: request.nextUrl.pathname,
       profileExists: !!profile,
       usernameExists: !!(profile && profile.username),
-      shouldRedirectToMyCard: !!(profile && profile.username)
+      shouldRedirectToHome: !!(profile && profile.username)
     });
 
     if (profile?.username) {
-      console.log('Debug - Redirecting from onboarding to my-card');
-      return NextResponse.redirect(new URL('/my-card', request.url));
+      console.log('Debug - Redirecting from onboarding to home');
+      return NextResponse.redirect(new URL('/home', request.url));
     }
   }
 
@@ -127,7 +152,7 @@ export async function middleware(request: NextRequest) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('id, username')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .maybeSingle();
 
     console.log('Debug - Auth pages check:', { 
@@ -137,7 +162,7 @@ export async function middleware(request: NextRequest) {
       profileExists: !!profile,
       usernameExists: !!(profile && profile.username),
       shouldRedirectToOnboarding: !profile || !profile.username,
-      shouldRedirectToMyCard: profile && profile.username
+      shouldRedirectToHome: profile && profile.username
     });
 
     if (!profile || !profile.username) {
@@ -145,8 +170,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/onboarding', request.url));
     }
 
-    console.log('Debug - Redirecting to my-card from auth pages');
-    return NextResponse.redirect(new URL('/my-card', request.url));
+    console.log('Debug - Redirecting to home from auth pages');
+    return NextResponse.redirect(new URL('/home', request.url));
   }
 
   // Require authentication for onboarding
@@ -158,5 +183,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/my-card/:path*', '/login', '/signup', '/onboarding'],
+  matcher: ['/my-card/:path*', '/home', '/create-card/:path*', '/login', '/signup', '/onboarding'],
 };
