@@ -6,8 +6,8 @@ export const cardFormSchema = z.object({
     .min(3, 'Username must be at least 3 characters')
     .max(50, 'Username must be less than 50 characters')
     .regex(/^[a-z0-9-]+$/, 'Username can only contain lowercase letters, numbers, and hyphens'),
-  is_public: z.boolean().default(true),
-  is_primary: z.boolean().default(false),
+  is_public: z.boolean(),
+  is_primary: z.boolean(),
   display_name: z.string().optional(),
   job_title: z.string().optional(),
   company: z.string().optional(),
@@ -21,4 +21,3 @@ export const cardFormSchema = z.object({
 });
 
 export type CardFormData = z.infer<typeof cardFormSchema>;
-
