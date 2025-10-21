@@ -164,7 +164,7 @@ export function MyCardsSection({ cards }: MyCardsSectionProps) {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete Card?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to delete <strong>{card.card_name || 'this card'}</strong> (@{card.username})?
+                      Are you sure you want to delete <strong>{card.display_name || card.username}</strong>&apos;s card (@{card.username})?
                       This action cannot be undone and will permanently delete all associated data including links, social profiles, and services.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
