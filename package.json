@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "npm run db:migrate && next build --turbopack",
+    "build": "bun run db:migrate && next build --turbopack",
     "start": "next start",
     "lint": "eslint",
     "test": "playwright test",
@@ -12,10 +12,10 @@
     "test:ui": "playwright test --ui",
     "test:screenshots": "playwright test --project='Mobile Screenshots'",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx scripts/migrate.ts",
+    "db:migrate": "bun scripts/migrate.ts",
     "db:studio": "drizzle-kit studio",
     "db:push": "drizzle-kit push",
-    "db:clean": "tsx scripts/clean-database.ts"
+    "db:clean": "bun scripts/clean-database.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
