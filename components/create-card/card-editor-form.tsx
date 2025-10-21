@@ -11,15 +11,25 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { createCard } from '@/app/actions/cards';
+import { createCard, updateCard } from '@/app/actions/cards';
 import { cardFormSchema, type CardFormData } from '@/lib/validations/card';
 import Image from 'next/image';
 import { 
   User, Phone,
   FileText, Link as LinkIcon, Share2, Wrench, Map as MapIcon 
 } from 'lucide-react';
+import { Database } from '@/lib/database.types';
 
-export function CardEditorForm() {
+type Profile = Database['public']['Tables']['profiles']['Row'];
+type WidgetSettings = Database['public']['Tables']['widget_settings']['Row'];
+
+interface CardEditorFormProps {
+  isEditMode?: boolean;
+  profile?: Profile;
+  widgetSettings?: WidgetSettings[];
+}
+
+export function CardEditorForm({ isEditMode = false, profile, widgetSettings }: CardEditorFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   
@@ -65,19 +75,56 @@ export function CardEditorForm() {
   const isPublic = watch('is_public');
   const isPrimary = watch('is_primary');
 
-  // Load LinkedIn data from session storage
+  // Load data on mount
   useEffect(() => {
-    const storedLinkedinUsername = sessionStorage.getItem('linkedinUsername');
-    if (storedLinkedinUsername) {
-      setValue('username', storedLinkedinUsername);
+    if (isEditMode && profile) {
+      // Pre-populate form with existing profile data
+      // @ts-expect-error - Database types not yet updated
+      setValue('card_name', profile.card_name || 'My Card');
+      setValue('username', profile.username);
+      // @ts-expect-error - Database types not yet updated
+      setValue('is_public', profile.is_public ?? true);
+      // @ts-expect-error - Database types not yet updated
+      setValue('is_primary', profile.is_primary ?? false);
+      setValue('display_name', profile.display_name || '');
+      setValue('job_title', profile.job_title || '');
+      setValue('company', profile.company || '');
+      setValue('location', profile.location || '');
+      setValue('bio', profile.bio || '');
+      setValue('email', profile.email || '');
+      setValue('phone', profile.phone || '');
+      setValue('website', profile.website || '');
+      setValue('address', profile.address || '');
+      setValue('profile_image_url', profile.profile_image_url || '');
+      
+      // Load widget settings
+      if (widgetSettings && widgetSettings.length > 0) {
+        const widgetMap: Record<string, boolean> = {};
+        widgetSettings.forEach(ws => {
+          widgetMap[ws.widget_type] = ws.enabled;
+        });
+        setWidgets(prev => ({ ...prev, ...widgetMap }));
+      }
+    } else {
+      // Load LinkedIn data from session storage for new cards
+      const storedLinkedinUsername = sessionStorage.getItem('linkedinUsername');
+      if (storedLinkedinUsername) {
+        setValue('username', storedLinkedinUsername);
+      }
     }
-  }, [setValue]);
+  }, [isEditMode, profile, widgetSettings, setValue]);
 
   const onSubmit = async (data: CardFormData) => {
     setIsLoading(true);
 
     try {
       const formData = new FormData();
+      
+      // Add profile_id for edit mode
+      if (isEditMode && profile) {
+        formData.append('profile_id', profile.id);
+      }
+      
       formData.append('card_name', data.card_name);
       formData.append('username', data.username);
       formData.append('is_public', data.is_public.toString());
@@ -94,32 +141,42 @@ export function CardEditorForm() {
       formData.append('profile_image_url', data.profile_image_url || '');
       formData.append('enabledWidgets', JSON.stringify(widgets));
 
-      const result = await createCard(formData);
+      const result = isEditMode 
+        ? await updateCard(formData) 
+        : await createCard(formData);
 
       if (result.success && result.data) {
-        toast.success('Card created successfully!');
+        toast.success(isEditMode ? 'Card updated successfully!' : 'Card created successfully!');
         
-        // Clear session storage
-        sessionStorage.removeItem('linkedinUrl');
-        sessionStorage.removeItem('linkedinUsername');
+        if (!isEditMode) {
+          // Clear session storage only for new cards
+          sessionStorage.removeItem('linkedinUrl');
+          sessionStorage.removeItem('linkedinUsername');
+        }
         
-        // Redirect to the new card
+        // Redirect to the card
         router.push(`/${result.data.username}`);
       } else {
-        if (result.errors) {
-          // Display field-specific errors
+        // Check for field errors from both createCard and updateCard
+        if ('errors' in result && result.errors) {
+          // Display field-specific errors from createCard
           Object.entries(result.errors).forEach(([field, messages]) => {
             if (Array.isArray(messages)) {
               messages.forEach(msg => toast.error(`${field}: ${msg}`));
             }
           });
+        } else if ('fieldErrors' in result && result.fieldErrors) {
+          // Display field-specific errors from updateCard
+          Object.entries(result.fieldErrors).forEach(([field, message]) => {
+            toast.error(`${field}: ${message}`);
+          });
         } else {
-          toast.error(result.error || 'Failed to create card');
+          toast.error(result.error || `Failed to ${isEditMode ? 'update' : 'create'} card`);
         }
         setIsLoading(false);
       }
     } catch (error) {
-      console.error('Create card error:', error);
+      console.error(`${isEditMode ? 'Update' : 'Create'} card error:`, error);
       toast.error('Something went wrong. Please try again.');
       setIsLoading(false);
     }
@@ -444,7 +501,7 @@ export function CardEditorForm() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push('/home')}
+            onClick={() => router.push(isEditMode ? `/${profile?.username}` : '/home')}
             disabled={isLoading}
           >
             Cancel
@@ -455,7 +512,10 @@ export function CardEditorForm() {
             disabled={isLoading}
             className="min-w-[200px]"
           >
-            {isLoading ? 'Creating Card...' : 'Create Card'}
+            {isLoading 
+              ? (isEditMode ? 'Saving Changes...' : 'Creating Card...') 
+              : (isEditMode ? 'Save Changes' : 'Create Card')
+            }
           </Button>
         </div>
       </div>
