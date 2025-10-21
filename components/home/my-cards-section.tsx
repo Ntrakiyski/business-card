@@ -1,11 +1,26 @@
 'use client';
 
+import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Database } from '@/lib/database.types';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Eye, Edit, QrCode, User, Globe, Lock } from 'lucide-react';
+import { Eye, Edit, QrCode, User, Globe, Lock, Trash2 } from 'lucide-react';
+import { deleteCard } from '@/app/actions/cards';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -14,6 +29,26 @@ interface MyCardsSectionProps {
 }
 
 export function MyCardsSection({ cards }: MyCardsSectionProps) {
+  const router = useRouter();
+  const [deletingCardId, setDeletingCardId] = useState<string | null>(null);
+
+  const handleDeleteCard = async (cardId: string) => {
+    setDeletingCardId(cardId);
+    try {
+      const result = await deleteCard(cardId);
+      if (result.success) {
+        toast.success('Card deleted successfully');
+        router.refresh(); // Refresh to show updated card list
+      } else {
+        toast.error(result.error || 'Failed to delete card');
+      }
+    } catch {
+      toast.error('An error occurred while deleting the card');
+    } finally {
+      setDeletingCardId(null);
+    }
+  };
+
   if (cards.length === 0) {
     return (
       <Card className="p-12 text-center">
@@ -91,24 +126,59 @@ export function MyCardsSection({ cards }: MyCardsSectionProps) {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2 pt-2">
-              <Button asChild variant="outline" size="sm" className="flex-1">
-                <Link href={`/${card.username}`}>
-                  <Eye className="w-4 h-4 mr-1" />
-                  View
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="sm" className="flex-1">
-                <Link href={`/${card.username}?edit=true`}>
-                  <Edit className="w-4 h-4 mr-1" />
-                  Edit
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link href={`/my-card?cardId=${card.id}`}>
-                  <QrCode className="w-4 h-4" />
-                </Link>
-              </Button>
+            <div className="space-y-2 pt-2">
+              <div className="flex gap-2">
+                <Button asChild variant="outline" size="sm" className="flex-1">
+                  <Link href={`/${card.username}`}>
+                    <Eye className="w-4 h-4 mr-1" />
+                    View
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="sm" className="flex-1">
+                  <Link href={`/${card.username}?edit=true`}>
+                    <Edit className="w-4 h-4 mr-1" />
+                    Edit
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="sm">
+                  <Link href={`/my-card?cardId=${card.id}`}>
+                    <QrCode className="w-4 h-4" />
+                  </Link>
+                </Button>
+              </div>
+              
+              {/* Delete Card Button with Confirmation */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    className="w-full"
+                    disabled={deletingCardId === card.id}
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    {deletingCardId === card.id ? 'Deleting...' : 'Delete Card'}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Card?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete <strong>{card.card_name || 'this card'}</strong> (@{card.username})?
+                      This action cannot be undone and will permanently delete all associated data including links, social profiles, and services.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => handleDeleteCard(card.id)}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Delete Permanently
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </Card>

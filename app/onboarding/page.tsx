@@ -22,6 +22,7 @@ export default function OnboardingPage() {
 
       if (result && !result.success && result.error) {
         // Handle errors
+        setLoading(false) // Reset loading state for errors
         if (typeof result.error === 'object' && 'username' in result.error) {
           const errors = result.error as { username?: string[] }
           if (errors.username) {
@@ -34,14 +35,14 @@ export default function OnboardingPage() {
           toast.error('Failed to set username. Please try again.')
         }
       } else if (result && result.success && result.redirectUrl) {
+        // Keep loading state true during redirect
         // Handle successful redirect on the client side using window.location
         // This ensures a full page navigation which will trigger middleware checks
         window.location.href = result.redirectUrl;
       }
     } catch {
+      setLoading(false) // Reset loading state for unexpected errors
       toast.error('An unexpected error occurred. Please try again.')
-    } finally {
-      setLoading(false)
     }
   }
 
