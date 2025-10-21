@@ -2,9 +2,6 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { MyCardsSection } from '@/components/home/my-cards-section';
 import { PublicDirectoryTable } from '@/components/home/public-directory-table';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { Plus } from 'lucide-react';
 import { AppLayout } from '@/components/layout/app-layout';
 
 export default async function HomePage() {
@@ -42,14 +39,6 @@ export default async function HomePage() {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
                 <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-              </div>
-              <div className="flex items-center gap-4">
-                <Button asChild>
-                  <Link href="/create-card/step-1">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create New Card
-                  </Link>
-                </Button>
               </div>
             </div>
           </div>

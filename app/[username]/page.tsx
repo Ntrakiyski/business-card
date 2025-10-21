@@ -1,39 +1,26 @@
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
-import { ProfileWidget } from '@/components/widgets/profile-widget';
-import { BioWidget } from '@/components/widgets/bio-widget';
-import { LinksWidget } from '@/components/widgets/links-widget';
-import { SocialWidget } from '@/components/widgets/social-widget';
-import { ServicesWidget } from '@/components/widgets/services-widget';
-import { ContactWidget } from '@/components/widgets/contact-widget';
-import { MapWidget } from '@/components/widgets/map-widget';
-import { LogoutButton } from '@/components/logout-button';
-import { ProfileViewContainer } from '@/components/profile-view-container';
-import { PublicToggle } from '@/components/profile/public-toggle';
+import { CardPageClient } from '@/components/profile/card-page-client';
 import { Database } from '@/lib/database.types';
 
 // Force dynamic rendering to always fetch fresh data
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-type Profile = Database['public']['Tables']['profiles']['Row'] & { is_public?: boolean };
+type Profile = Database['public']['Tables']['profiles']['Row'];
 type CustomLink = Database['public']['Tables']['custom_links']['Row'];
 type SocialLink = Database['public']['Tables']['social_links']['Row'];
 type Service = Database['public']['Tables']['services']['Row'];
+type WidgetSettings = Database['public']['Tables']['widget_settings']['Row'];
 
 interface ProfilePageProps {
   params: {
     username: string;
   };
-  searchParams?: {
-    edit?: string;
-  };
 }
 
-export default async function ProfilePage({ params, searchParams }: ProfilePageProps) {
+export default async function ProfilePage({ params }: ProfilePageProps) {
   const { username } = await params;
-  const resolvedSearchParams = await searchParams;
-  const isEditMode = resolvedSearchParams?.edit === 'true';
   const supabase = await createClient();
 
   // Check if current user is authenticated
@@ -42,8 +29,6 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
     const { data: userData } = await supabase.auth.getUser();
     user = userData.user;
   } catch (error) {
-    // If there's an auth error (like invalid refresh token), continue without user
-    // This allows public profiles to still be accessible
     console.warn('Auth error (likely expired session):', error);
     user = null;
   }
@@ -63,9 +48,6 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
 
   // Check if the current user is viewing their own profile
   const isOwner: boolean = !!(user && user.id === profile.user_id);
-  
-  // Enable editing only if user is owner and edit mode is on
-  const canEdit: boolean = isOwner && isEditMode;
 
   // Fetch custom links
   const { data: customLinks } = await supabase
@@ -74,23 +56,11 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
     .eq('profile_id', profile.id)
     .order('order', { ascending: true });
 
-  // Filter enabled links for public view, but show all for owner
-  const typedCustomLinks = (customLinks || []) as CustomLink[];
-  const enabledCustomLinks: CustomLink[] = isOwner 
-    ? typedCustomLinks
-    : typedCustomLinks.filter(link => link.enabled);
-
   // Fetch social links
   const { data: socialLinks } = await supabase
     .from('social_links')
     .select('*')
     .eq('profile_id', profile.id);
-
-  // Filter enabled links for public view, but show all for owner
-  const typedSocialLinks = (socialLinks || []) as SocialLink[];
-  const enabledSocialLinks: SocialLink[] = isOwner 
-    ? typedSocialLinks
-    : typedSocialLinks.filter(link => link.enabled);
 
   // Fetch services
   const { data: services } = await supabase
@@ -99,191 +69,23 @@ export default async function ProfilePage({ params, searchParams }: ProfilePageP
     .eq('profile_id', profile.id)
     .order('order', { ascending: true });
 
-  // Filter enabled services for public view, but show all for owner
-  const typedServices = (services || []) as Service[];
-  const enabledServices: Service[] = isOwner 
-    ? typedServices
-    : typedServices.filter(service => service.enabled);
-
-  // Fetch widget settings to determine order and visibility
+  // Fetch widget settings
   const { data: widgetSettingsData } = await supabase
     .from('widget_settings')
     .select('*')
     .eq('profile_id', profile.id)
     .order('order', { ascending: true });
 
-  // Show all widget settings for owner, only enabled for public
-  const allWidgetSettings = (widgetSettingsData || []) as Database['public']['Tables']['widget_settings']['Row'][];
-
-  // Create a map of widget type to settings
-  const widgetSettingsMap: Record<string, typeof allWidgetSettings[0]> = {};
-  allWidgetSettings.forEach((setting) => {
-    widgetSettingsMap[setting.widget_type] = setting;
-  });
-
-  // Define all widgets with their components
-  const allWidgets = [
-    { 
-      type: 'profile', 
-      order: widgetSettingsMap['profile']?.order ?? 1, 
-      component: <ProfileWidget 
-        key="profile" 
-        profile={profile} 
-        editable={canEdit}
-        widgetSettings={widgetSettingsMap['profile']}
-      /> 
-    },
-    { 
-      type: 'bio', 
-      order: widgetSettingsMap['bio']?.order ?? 2, 
-      component: <BioWidget 
-        key="bio" 
-        bio={profile.bio ?? undefined} 
-        profile={profile} 
-        editable={canEdit}
-        widgetSettings={widgetSettingsMap['bio']}
-      /> 
-    },
-    { 
-      type: 'links', 
-      order: widgetSettingsMap['links']?.order ?? 3, 
-      component: <LinksWidget 
-        key="links" 
-        links={enabledCustomLinks || []} 
-        profileId={profile.id} 
-        editable={canEdit}
-        widgetSettings={widgetSettingsMap['links']}
-      /> 
-    },
-    { 
-      type: 'social', 
-      order: widgetSettingsMap['social']?.order ?? 4, 
-      component: <SocialWidget 
-        key="social" 
-        links={enabledSocialLinks || []} 
-        profileId={profile.id} 
-        editable={canEdit}
-        widgetSettings={widgetSettingsMap['social']}
-      /> 
-    },
-    { 
-      type: 'services', 
-      order: widgetSettingsMap['services']?.order ?? 5, 
-      component: <ServicesWidget 
-        key="services" 
-        services={enabledServices || []} 
-        profileId={profile.id} 
-        editable={canEdit}
-        widgetSettings={widgetSettingsMap['services']}
-      /> 
-    },
-    { 
-      type: 'contact', 
-      order: widgetSettingsMap['contact']?.order ?? 6, 
-      component: <ContactWidget 
-        key="contact" 
-        profile={profile} 
-        editable={canEdit}
-        widgetSettings={widgetSettingsMap['contact']}
-      /> 
-    },
-    { 
-      type: 'map', 
-      order: widgetSettingsMap['map']?.order ?? 7, 
-      component: <MapWidget 
-        key="map" 
-        profile={profile} 
-        editable={canEdit}
-        widgetSettings={widgetSettingsMap['map']}
-      /> 
-    },
-  ];
-
-  // Sort widgets by order and filter out null components for public view
-  // For owner, show all widgets even if they have no data
-  let sortedWidgets;
-  if (isOwner) {
-    // For owners, show all widgets in order (widgets will handle whether to show content or empty state)
-    sortedWidgets = allWidgets
-      .sort((a, b) => a.order - b.order)
-      .map(w => w.component);
-  } else {
-    // For public view, filter out null components
-    sortedWidgets = allWidgets
-      .sort((a, b) => a.order - b.order)
-      .map(w => w.component)
-      .filter(Boolean);
-  }
-
   return (
-    <ProfileViewContainer profile={profile}>
-      <div className="min-h-screen bg-gray-100 py-12 px-6 relative">
-        {/* Logout button for profile owner */}
-        {isOwner && (
-          <div className="absolute top-6 right-6 z-10">
-            <LogoutButton />
-          </div>
-        )}
-        
-        <div className="max-w-2xl mx-auto space-y-6">
-          {/* Edit Mode Banner */}
-          {isEditMode && isOwner && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-blue-800">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                <p className="font-medium">Edit Mode Active</p>
-              </div>
-              <p className="text-sm text-blue-700 mt-1">
-                Click the edit icon on any widget to make changes. Changes are saved automatically.
-              </p>
-            </div>
-          )}
-          
-          {/* Public/Private Toggle for owner */}
-          {isOwner && (
-            <PublicToggle profileId={profile.id} isPublic={profile.is_public ?? true} />
-          )}
-          
-          {sortedWidgets}
-        </div>
-      </div>
-    </ProfileViewContainer>
+    <CardPageClient
+      profile={profile}
+      customLinks={(customLinks || []) as CustomLink[]}
+      socialLinks={(socialLinks || []) as SocialLink[]}
+      services={(services || []) as Service[]}
+      widgetSettings={(widgetSettingsData || []) as WidgetSettings[]}
+      isOwner={isOwner}
+      currentUsername={user ? profile.username : undefined}
+    />
   );
 }
 
-// Commenting out generateMetadata temporarily due to Next.js 15/Turbopack issue
-// export async function generateMetadata({ params }: ProfilePageProps) {
-//   const { username } = params;
-//   const supabase = await createClient();
-
-//   try {
-//     const { data: profileData } = await supabase
-//       .from('profiles')
-//       .select('display_name, bio, job_title, company')
-//       .eq('username', username)
-//       .maybeSingle();
-
-//     if (!profileData) {
-//       return {
-//         title: 'Profile Not Found',
-//       };
-//     }
-
-//     const profile = profileData as Pick<Profile, 'display_name' | 'bio' | 'job_title' | 'company'>;
-
-//     const title = profile.display_name || username;
-//     const description = profile.bio || `${profile.job_title || ''} ${profile.company ? `at ${profile.company}` : ''}`.trim();
-
-//     return {
-//       title: `${title} - Digital Business Card`,
-//       description: description || `View ${title}'s digital business card`,
-//     };
-//   } catch (error) {
-//     console.error('Error generating metadata:', error);
-//     return {
-//       title: 'Profile Not Found',
-//     };
-//   }
-// }

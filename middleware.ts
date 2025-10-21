@@ -73,7 +73,7 @@ export async function middleware(request: NextRequest) {
     // Check if user has completed onboarding
     const { data: profile } = await supabase
       .from('profiles')
-      .select('id, username')
+      .select('id, username, onboarding_completed')
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -82,14 +82,13 @@ export async function middleware(request: NextRequest) {
       profile, 
       pathname: request.nextUrl.pathname,
       profileExists: !!profile,
-      usernameExists: !!(profile && profile.username),
-      shouldRedirect: !profile || !profile.username
+      onboardingCompleted: !!(profile && profile.onboarding_completed)
     });
 
-    if (!profile || !profile.username) {
+    if (!profile || !profile.onboarding_completed) {
       console.log('Debug - Redirecting to onboarding because:', { 
         noProfile: !profile, 
-        noUsername: profile && !profile.username 
+        notCompleted: profile && !profile.onboarding_completed 
       });
       return NextResponse.redirect(new URL('/onboarding', request.url));
     }
@@ -104,11 +103,11 @@ export async function middleware(request: NextRequest) {
     // Check if user has completed onboarding
     const { data: profile } = await supabase
       .from('profiles')
-      .select('id, username')
+      .select('id, username, onboarding_completed')
       .eq('user_id', user.id)
       .maybeSingle();
 
-    if (!profile || !profile.username) {
+    if (!profile || !profile.onboarding_completed) {
       return NextResponse.redirect(new URL('/onboarding', request.url));
     }
   }
@@ -120,11 +119,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect onboarding route - redirect if already has username
+  // Protect onboarding route - redirect if already completed onboarding
   if (user && request.nextUrl.pathname.startsWith('/onboarding')) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('id, username')
+      .select('id, username, onboarding_completed')
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -133,11 +132,11 @@ export async function middleware(request: NextRequest) {
       profile, 
       pathname: request.nextUrl.pathname,
       profileExists: !!profile,
-      usernameExists: !!(profile && profile.username),
-      shouldRedirectToHome: !!(profile && profile.username)
+      onboardingCompleted: !!(profile && profile.onboarding_completed),
+      shouldRedirectToHome: !!(profile && profile.onboarding_completed)
     });
 
-    if (profile?.username) {
+    if (profile?.onboarding_completed) {
       console.log('Debug - Redirecting from onboarding to home');
       return NextResponse.redirect(new URL('/home', request.url));
     }
@@ -151,7 +150,7 @@ export async function middleware(request: NextRequest) {
     // Check if they've completed onboarding
     const { data: profile } = await supabase
       .from('profiles')
-      .select('id, username')
+      .select('id, username, onboarding_completed')
       .eq('user_id', user.id)
       .maybeSingle();
 
@@ -160,12 +159,12 @@ export async function middleware(request: NextRequest) {
       profile, 
       pathname: request.nextUrl.pathname,
       profileExists: !!profile,
-      usernameExists: !!(profile && profile.username),
-      shouldRedirectToOnboarding: !profile || !profile.username,
-      shouldRedirectToHome: profile && profile.username
+      onboardingCompleted: !!(profile && profile.onboarding_completed),
+      shouldRedirectToOnboarding: !profile || !profile.onboarding_completed,
+      shouldRedirectToHome: profile && profile.onboarding_completed
     });
 
-    if (!profile || !profile.username) {
+    if (!profile || !profile.onboarding_completed) {
       console.log('Debug - Redirecting to onboarding from auth pages');
       return NextResponse.redirect(new URL('/onboarding', request.url));
     }

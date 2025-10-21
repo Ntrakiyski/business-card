@@ -11,6 +11,7 @@ export const profiles = pgTable('profiles', {
   cardName: text('card_name').notNull().default('My Card'),
   isPrimary: boolean('is_primary').default(false),
   isPublic: boolean('is_public').default(true),
+  onboardingCompleted: boolean('onboarding_completed').default(false),
   displayName: text('display_name'),
   jobTitle: text('job_title'),
   company: text('company'),
@@ -151,4 +152,3 @@ export type NewService = typeof services.$inferInsert;
 
 export type WidgetSetting = typeof widgetSettings.$inferSelect;
 export type NewWidgetSetting = typeof widgetSettings.$inferInsert;
-

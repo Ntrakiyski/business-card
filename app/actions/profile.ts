@@ -76,6 +76,7 @@ export async function setUsername(formData: FormData): Promise<SetUsernameResult
       card_name: 'My Card',
       is_primary: true,
       is_public: true,
+      onboarding_completed: true,
     }
     
     // Try to insert the profile
