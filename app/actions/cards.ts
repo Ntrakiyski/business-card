@@ -74,7 +74,14 @@ export async function createCard(formData: FormData) {
       enabledWidgets: JSON.parse(formData.get('enabledWidgets') as string || '{}'),
     };
 
-    const validatedData = createCardSchema.parse(rawData);
+    const result = createCardSchema.safeParse(rawData);
+    
+    if (!result.success) {
+      const errors = result.error.flatten().fieldErrors;
+      return { success: false, errors, error: 'Validation failed' };
+    }
+    
+    const validatedData = result.data;
 
     // Check if username is already taken
     const { data: existingProfile } = await supabase

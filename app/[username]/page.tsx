@@ -25,10 +25,15 @@ interface ProfilePageProps {
   params: {
     username: string;
   };
+  searchParams?: {
+    edit?: string;
+  };
 }
 
-export default async function ProfilePage({ params }: ProfilePageProps) {
+export default async function ProfilePage({ params, searchParams }: ProfilePageProps) {
   const { username } = await params;
+  const resolvedSearchParams = await searchParams;
+  const isEditMode = resolvedSearchParams?.edit === 'true';
   const supabase = await createClient();
 
   // Check if current user is authenticated
@@ -58,6 +63,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   // Check if the current user is viewing their own profile
   const isOwner: boolean = !!(user && user.id === profile.user_id);
+  
+  // Enable editing only if user is owner and edit mode is on
+  const canEdit: boolean = isOwner && isEditMode;
 
   // Fetch custom links
   const { data: customLinks } = await supabase
@@ -121,7 +129,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       component: <ProfileWidget 
         key="profile" 
         profile={profile} 
-        editable={isOwner}
+        editable={canEdit}
         widgetSettings={widgetSettingsMap['profile']}
       /> 
     },
@@ -132,7 +140,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         key="bio" 
         bio={profile.bio ?? undefined} 
         profile={profile} 
-        editable={isOwner}
+        editable={canEdit}
         widgetSettings={widgetSettingsMap['bio']}
       /> 
     },
@@ -143,7 +151,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         key="links" 
         links={enabledCustomLinks || []} 
         profileId={profile.id} 
-        editable={isOwner}
+        editable={canEdit}
         widgetSettings={widgetSettingsMap['links']}
       /> 
     },
@@ -154,7 +162,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         key="social" 
         links={enabledSocialLinks || []} 
         profileId={profile.id} 
-        editable={isOwner}
+        editable={canEdit}
         widgetSettings={widgetSettingsMap['social']}
       /> 
     },
@@ -165,7 +173,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         key="services" 
         services={enabledServices || []} 
         profileId={profile.id} 
-        editable={isOwner}
+        editable={canEdit}
         widgetSettings={widgetSettingsMap['services']}
       /> 
     },
@@ -175,7 +183,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       component: <ContactWidget 
         key="contact" 
         profile={profile} 
-        editable={isOwner}
+        editable={canEdit}
         widgetSettings={widgetSettingsMap['contact']}
       /> 
     },
@@ -185,7 +193,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       component: <MapWidget 
         key="map" 
         profile={profile} 
-        editable={isOwner}
+        editable={canEdit}
         widgetSettings={widgetSettingsMap['map']}
       /> 
     },
@@ -218,6 +226,21 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         )}
         
         <div className="max-w-2xl mx-auto space-y-6">
+          {/* Edit Mode Banner */}
+          {isEditMode && isOwner && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-blue-800">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <p className="font-medium">Edit Mode Active</p>
+              </div>
+              <p className="text-sm text-blue-700 mt-1">
+                Click the edit icon on any widget to make changes. Changes are saved automatically.
+              </p>
+            </div>
+          )}
+          
           {/* Public/Private Toggle for owner */}
           {isOwner && (
             <PublicToggle profileId={profile.id} isPublic={profile.is_public ?? true} />
