@@ -305,7 +305,7 @@ export async function updateCard(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
-    return { success: false, error: 'Not authenticated' };
+    return { success: false, error: 'Not authenticated', fieldErrors: {} };
   }
 
   try {
@@ -331,14 +331,18 @@ export async function updateCard(formData: FormData) {
       enabledWidgets: JSON.parse(formData.get('enabledWidgets') as string || '{}'),
     };
 
-    const result = updateCardSchema.safeParse(rawData);
+    const validationResult = updateCardSchema.safeParse(rawData);
     
-    if (!result.success) {
-      const errors = result.error.flatten().fieldErrors;
-      return { success: false, errors, error: 'Validation failed' };
+    if (!validationResult.success) {
+      const fieldErrors: Record<string, string> = {};
+      validationResult.error.issues.forEach((err) => {
+        const field = err.path.join('.');
+        fieldErrors[field] = err.message;
+      });
+      return { success: false, error: 'Validation failed', fieldErrors };
     }
 
-    const validatedData = result.data;
+    const validatedData = validationResult.data;
 
     // Verify ownership
     const { data: existingProfile } = await supabase
@@ -348,12 +352,12 @@ export async function updateCard(formData: FormData) {
       .maybeSingle();
 
     if (!existingProfile) {
-      return { success: false, error: 'Card not found' };
+      return { success: false, error: 'Card not found', fieldErrors: {} };
     }
 
     // @ts-expect-error - Database types not yet updated
     if (existingProfile.user_id !== user.id) {
-      return { success: false, error: 'Not authorized to edit this card' };
+      return { success: false, error: 'Not authorized to edit this card', fieldErrors: {} };
     }
 
     // Check if username is already taken by another profile
@@ -366,7 +370,11 @@ export async function updateCard(formData: FormData) {
         .maybeSingle();
 
       if (usernameCheck) {
-        return { success: false, error: 'Username already taken' };
+        return { 
+          success: false, 
+          error: 'Username already taken', 
+          fieldErrors: { username: 'This username is already taken' } 
+        };
       }
     }
 
@@ -409,7 +417,7 @@ export async function updateCard(formData: FormData) {
 
     if (profileError || !profile) {
       console.error('Profile update error:', profileError);
-      return { success: false, error: 'Failed to update card' };
+      return { success: false, error: 'Failed to update card', fieldErrors: {} };
     }
 
     // Update widget settings
@@ -441,10 +449,19 @@ export async function updateCard(formData: FormData) {
         // @ts-expect-error - Profile type inference issue
         id: profile.id, 
         username: validatedData.username 
-      } 
+      },
+      fieldErrors: {} 
     };
   } catch (error) {
     console.error('Update card error:', error);
-    return { success: false, error: 'Failed to update card' };
+    if (error instanceof z.ZodError) {
+      const fieldErrors: Record<string, string> = {};
+      error.issues.forEach((err) => {
+        const field = err.path.join('.');
+        fieldErrors[field] = err.message;
+      });
+      return { success: false, error: 'Validation failed', fieldErrors };
+    }
+    return { success: false, error: 'Failed to update card', fieldErrors: {} };
   }
 }

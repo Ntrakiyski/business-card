@@ -51,7 +51,6 @@ export function CardEditorForm({ isEditMode = false, profile, widgetSettings }: 
     formState: { errors },
     setValue,
     watch,
-    reset,
   } = useForm<CardFormData>({
     resolver: zodResolver(cardFormSchema),
     defaultValues: {
@@ -80,25 +79,23 @@ export function CardEditorForm({ isEditMode = false, profile, widgetSettings }: 
   useEffect(() => {
     if (isEditMode && profile) {
       // Pre-populate form with existing profile data
-      reset({
-        // @ts-expect-error - Database types not yet updated
-        card_name: profile.card_name || 'My Card',
-        username: profile.username,
-        // @ts-expect-error - Database types not yet updated
-        is_public: profile.is_public ?? true,
-        // @ts-expect-error - Database types not yet updated
-        is_primary: profile.is_primary ?? false,
-        display_name: profile.display_name || '',
-        job_title: profile.job_title || '',
-        company: profile.company || '',
-        location: profile.location || '',
-        bio: profile.bio || '',
-        email: profile.email || '',
-        phone: profile.phone || '',
-        website: profile.website || '',
-        address: profile.address || '',
-        profile_image_url: profile.profile_image_url || '',
-      });
+      // @ts-expect-error - Database types not yet updated
+      setValue('card_name', profile.card_name || 'My Card');
+      setValue('username', profile.username);
+      // @ts-expect-error - Database types not yet updated
+      setValue('is_public', profile.is_public ?? true);
+      // @ts-expect-error - Database types not yet updated
+      setValue('is_primary', profile.is_primary ?? false);
+      setValue('display_name', profile.display_name || '');
+      setValue('job_title', profile.job_title || '');
+      setValue('company', profile.company || '');
+      setValue('location', profile.location || '');
+      setValue('bio', profile.bio || '');
+      setValue('email', profile.email || '');
+      setValue('phone', profile.phone || '');
+      setValue('website', profile.website || '');
+      setValue('address', profile.address || '');
+      setValue('profile_image_url', profile.profile_image_url || '');
       
       // Load widget settings
       if (widgetSettings && widgetSettings.length > 0) {
@@ -115,7 +112,7 @@ export function CardEditorForm({ isEditMode = false, profile, widgetSettings }: 
         setValue('username', storedLinkedinUsername);
       }
     }
-  }, [isEditMode, profile, widgetSettings, reset, setValue]);
+  }, [isEditMode, profile, widgetSettings, setValue]);
 
   const onSubmit = async (data: CardFormData) => {
     setIsLoading(true);
@@ -147,7 +144,7 @@ export function CardEditorForm({ isEditMode = false, profile, widgetSettings }: 
       const result = isEditMode 
         ? await updateCard(formData) 
         : await createCard(formData);
- 
+
       if (result.success && result.data) {
         toast.success(isEditMode ? 'Card updated successfully!' : 'Card created successfully!');
         
@@ -160,12 +157,18 @@ export function CardEditorForm({ isEditMode = false, profile, widgetSettings }: 
         // Redirect to the card
         router.push(`/${result.data.username}`);
       } else {
-        if (result.errors) {
-          // Display field-specific errors
+        // Check for field errors from both createCard and updateCard
+        if ('errors' in result && result.errors) {
+          // Display field-specific errors from createCard
           Object.entries(result.errors).forEach(([field, messages]) => {
             if (Array.isArray(messages)) {
               messages.forEach(msg => toast.error(`${field}: ${msg}`));
             }
+          });
+        } else if ('fieldErrors' in result && result.fieldErrors) {
+          // Display field-specific errors from updateCard
+          Object.entries(result.fieldErrors).forEach(([field, message]) => {
+            toast.error(`${field}: ${message}`);
           });
         } else {
           toast.error(result.error || `Failed to ${isEditMode ? 'update' : 'create'} card`);
@@ -456,7 +459,7 @@ export function CardEditorForm({ isEditMode = false, profile, widgetSettings }: 
             </p>
           </Card>
         )}
- 
+
         {widgets.social && (
           <Card className="p-6 bg-purple-50 border-purple-200">
             <div className="flex items-center gap-2 mb-2">
@@ -468,7 +471,7 @@ export function CardEditorForm({ isEditMode = false, profile, widgetSettings }: 
             </p>
           </Card>
         )}
- 
+
         {widgets.services && (
           <Card className="p-6 bg-orange-50 border-orange-200">
             <div className="flex items-center gap-2 mb-2">
@@ -480,7 +483,7 @@ export function CardEditorForm({ isEditMode = false, profile, widgetSettings }: 
             </p>
           </Card>
         )}
- 
+
         {widgets.map && (
           <Card className="p-6 bg-green-50 border-green-200">
             <div className="flex items-center gap-2 mb-2">
@@ -492,7 +495,7 @@ export function CardEditorForm({ isEditMode = false, profile, widgetSettings }: 
             </p>
           </Card>
         )}
- 
+
         {/* Submit Button */}
         <div className="flex justify-end gap-4 pt-4">
           <Button
@@ -519,4 +522,3 @@ export function CardEditorForm({ isEditMode = false, profile, widgetSettings }: 
     </form>
   );
 }
-
