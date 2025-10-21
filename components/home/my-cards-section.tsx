@@ -104,7 +104,7 @@ export function MyCardsSection({ cards }: MyCardsSectionProps) {
                 </Link>
               </Button>
               <Button asChild variant="outline" size="sm" className="flex-1">
-                <Link href={`/${card.username}?edit=true`}>
+                <Link href={`/${card.username}/edit`}>
                   <Edit className="w-4 h-4 mr-1" />
                   Edit
                 </Link>
