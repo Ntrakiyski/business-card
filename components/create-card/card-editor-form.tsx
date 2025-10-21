@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +12,8 @@ import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { createCard } from '@/app/actions/cards';
+import { cardFormSchema, type CardFormData } from '@/lib/validations/card';
+import Image from 'next/image';
 import { 
   User, Phone,
   FileText, Link as LinkIcon, Share2, Wrench, Map as MapIcon 
@@ -18,23 +22,6 @@ import {
 export function CardEditorForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  
-  // Form state
-  const [cardName, setCardName] = useState('My Card');
-  const [username, setUsername] = useState('');
-  const [isPublic, setIsPublic] = useState(true);
-  const [isPrimary, setIsPrimary] = useState(false);
-  
-  // Profile data
-  const [displayName, setDisplayName] = useState('');
-  const [jobTitle, setJobTitle] = useState('');
-  const [company, setCompany] = useState('');
-  const [location, setLocation] = useState('');
-  const [bio, setBio] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [website, setWebsite] = useState('');
-  const [address, setAddress] = useState('');
   
   // Widget toggles
   const [widgets, setWidgets] = useState({
@@ -47,33 +34,64 @@ export function CardEditorForm() {
     map: true,
   });
 
+  // Form with validation
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+  } = useForm<CardFormData>({
+    resolver: zodResolver(cardFormSchema),
+    defaultValues: {
+      card_name: 'My Card',
+      username: '',
+      is_public: true,
+      is_primary: false,
+      display_name: '',
+      job_title: '',
+      company: '',
+      location: '',
+      bio: '',
+      email: '',
+      phone: '',
+      website: '',
+      address: '',
+      profile_image_url: '',
+    },
+  });
+
+  const profileImageUrl = watch('profile_image_url');
+  const isPublic = watch('is_public');
+  const isPrimary = watch('is_primary');
+
   // Load LinkedIn data from session storage
   useEffect(() => {
     const storedLinkedinUsername = sessionStorage.getItem('linkedinUsername');
     if (storedLinkedinUsername) {
-      setUsername(storedLinkedinUsername);
+      setValue('username', storedLinkedinUsername);
     }
-  }, []);
+  }, [setValue]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: CardFormData) => {
     setIsLoading(true);
 
     try {
       const formData = new FormData();
-      formData.append('card_name', cardName);
-      formData.append('username', username);
-      formData.append('is_public', isPublic.toString());
-      formData.append('is_primary', isPrimary.toString());
-      formData.append('display_name', displayName);
-      formData.append('job_title', jobTitle);
-      formData.append('company', company);
-      formData.append('location', location);
-      formData.append('bio', bio);
-      formData.append('email', email);
-      formData.append('phone', phone);
-      formData.append('website', website);
-      formData.append('address', address);
+      formData.append('card_name', data.card_name);
+      formData.append('username', data.username);
+      formData.append('is_public', data.is_public.toString());
+      formData.append('is_primary', data.is_primary.toString());
+      formData.append('display_name', data.display_name || '');
+      formData.append('job_title', data.job_title || '');
+      formData.append('company', data.company || '');
+      formData.append('location', data.location || '');
+      formData.append('bio', data.bio || '');
+      formData.append('email', data.email || '');
+      formData.append('phone', data.phone || '');
+      formData.append('website', data.website || '');
+      formData.append('address', data.address || '');
+      formData.append('profile_image_url', data.profile_image_url || '');
       formData.append('enabledWidgets', JSON.stringify(widgets));
 
       const result = await createCard(formData);
@@ -88,7 +106,16 @@ export function CardEditorForm() {
         // Redirect to the new card
         router.push(`/${result.data.username}`);
       } else {
-        toast.error(result.error || 'Failed to create card');
+        if (result.errors) {
+          // Display field-specific errors
+          Object.entries(result.errors).forEach(([field, messages]) => {
+            if (Array.isArray(messages)) {
+              messages.forEach(msg => toast.error(`${field}: ${msg}`));
+            }
+          });
+        } else {
+          toast.error(result.error || 'Failed to create card');
+        }
         setIsLoading(false);
       }
     } catch (error) {
@@ -103,7 +130,7 @@ export function CardEditorForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-4 gap-8">
       {/* Left Sidebar - Widget Toggles */}
       <div className="lg:col-span-1">
         <Card className="p-6 sticky top-6">
@@ -146,22 +173,28 @@ export function CardEditorForm() {
               <Label htmlFor="card_name">Card Name *</Label>
               <Input
                 id="card_name"
-                value={cardName}
-                onChange={(e) => setCardName(e.target.value)}
+                {...register('card_name')}
                 placeholder="My Professional Card"
-                required
               />
+              {errors.card_name && (
+                <p className="text-red-500 text-sm mt-1">{errors.card_name.message}</p>
+              )}
               <p className="text-xs text-gray-500 mt-1">For your reference only</p>
             </div>
             <div>
-              <Label htmlFor="username">Username * </Label>
+              <Label htmlFor="username">Username *</Label>
               <Input
                 id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                {...register('username')}
                 placeholder="johndoe"
-                required
+                onChange={(e) => {
+                  const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                  setValue('username', value);
+                }}
               />
+              {errors.username && (
+                <p className="text-red-500 text-sm mt-1">{errors.username.message}</p>
+              )}
               <p className="text-xs text-gray-500 mt-1">Your card URL: /username</p>
             </div>
             <div className="flex items-center justify-between">
@@ -172,7 +205,7 @@ export function CardEditorForm() {
               <Switch
                 id="is_public"
                 checked={isPublic}
-                onCheckedChange={setIsPublic}
+                onCheckedChange={(checked) => setValue('is_public', checked)}
               />
             </div>
             <div className="flex items-center justify-between">
@@ -183,7 +216,7 @@ export function CardEditorForm() {
               <Switch
                 id="is_primary"
                 checked={isPrimary}
-                onCheckedChange={setIsPrimary}
+                onCheckedChange={(checked) => setValue('is_primary', checked)}
               />
             </div>
           </div>
@@ -196,42 +229,81 @@ export function CardEditorForm() {
               <User className="w-5 h-5 text-blue-600" />
               <h3 className="text-lg font-semibold text-gray-900">Profile Information</h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-6">
+              {/* Profile Image URL */}
               <div>
-                <Label htmlFor="display_name">Full Name</Label>
+                <Label htmlFor="profile_image_url">Profile Image URL</Label>
                 <Input
-                  id="display_name"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="John Doe"
+                  id="profile_image_url"
+                  {...register('profile_image_url')}
+                  placeholder="https://example.com/image.jpg"
                 />
+                {errors.profile_image_url && (
+                  <p className="text-red-500 text-sm mt-1">{errors.profile_image_url.message}</p>
+                )}
+                
+                {/* Image Preview */}
+                {profileImageUrl && (
+                  <div className="mt-3">
+                    <p className="text-sm text-gray-600 mb-2">Preview:</p>
+                    <div className="relative w-32 h-32 rounded-full overflow-hidden bg-gray-200">
+                      <Image
+                        src={profileImageUrl}
+                        alt="Profile preview"
+                        fill
+                        className="object-cover"
+                        sizes="128px"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-              <div>
-                <Label htmlFor="job_title">Job Title</Label>
-                <Input
-                  id="job_title"
-                  value={jobTitle}
-                  onChange={(e) => setJobTitle(e.target.value)}
-                  placeholder="Senior Software Engineer"
-                />
-              </div>
-              <div>
-                <Label htmlFor="company">Company</Label>
-                <Input
-                  id="company"
-                  value={company}
-                  onChange={(e) => setCompany(e.target.value)}
-                  placeholder="Tech Corp"
-                />
-              </div>
-              <div>
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="San Francisco, CA"
-                />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="display_name">Full Name</Label>
+                  <Input
+                    id="display_name"
+                    {...register('display_name')}
+                    placeholder="John Doe"
+                  />
+                  {errors.display_name && (
+                    <p className="text-red-500 text-sm mt-1">{errors.display_name.message}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="job_title">Job Title</Label>
+                  <Input
+                    id="job_title"
+                    {...register('job_title')}
+                    placeholder="Senior Software Engineer"
+                  />
+                  {errors.job_title && (
+                    <p className="text-red-500 text-sm mt-1">{errors.job_title.message}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="company">Company</Label>
+                  <Input
+                    id="company"
+                    {...register('company')}
+                    placeholder="Tech Corp"
+                  />
+                  {errors.company && (
+                    <p className="text-red-500 text-sm mt-1">{errors.company.message}</p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    {...register('location')}
+                    placeholder="San Francisco, CA"
+                  />
+                  {errors.location && (
+                    <p className="text-red-500 text-sm mt-1">{errors.location.message}</p>
+                  )}
+                </div>
               </div>
             </div>
           </Card>
@@ -248,11 +320,13 @@ export function CardEditorForm() {
               <Label htmlFor="bio">About You</Label>
               <Textarea
                 id="bio"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
+                {...register('bio')}
                 placeholder="Tell people about yourself, your experience, and what you do..."
                 rows={5}
               />
+              {errors.bio && (
+                <p className="text-red-500 text-sm mt-1">{errors.bio.message}</p>
+              )}
             </div>
           </Card>
         )}
@@ -270,39 +344,47 @@ export function CardEditorForm() {
                 <Input
                   id="email"
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  {...register('email')}
                   placeholder="john@example.com"
                 />
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="phone">Phone</Label>
                 <Input
                   id="phone"
                   type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  {...register('phone')}
                   placeholder="+1 (555) 123-4567"
                 />
+                {errors.phone && (
+                  <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="website">Website</Label>
                 <Input
                   id="website"
                   type="url"
-                  value={website}
-                  onChange={(e) => setWebsite(e.target.value)}
+                  {...register('website')}
                   placeholder="https://yourwebsite.com"
                 />
+                {errors.website && (
+                  <p className="text-red-500 text-sm mt-1">{errors.website.message}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="address">Address</Label>
                 <Input
                   id="address"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
+                  {...register('address')}
                   placeholder="123 Main St, City, State"
                 />
+                {errors.address && (
+                  <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>
+                )}
               </div>
             </div>
           </Card>
