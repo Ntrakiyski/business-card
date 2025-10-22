@@ -28,12 +28,6 @@ export function SidebarNav({ className, onNavigate }: SidebarNavProps) {
       active: pathname === '/home',
     },
     {
-      label: 'Create Card',
-      icon: Plus,
-      href: '/create-card/step-1',
-      active: pathname?.startsWith('/create-card'),
-    },
-    {
       label: 'Explore',
       icon: Globe,
       href: '/home#explore',

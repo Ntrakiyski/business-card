@@ -28,6 +28,7 @@ interface CardPageClientProps {
   widgetSettings: WidgetSettings[];
   isOwner: boolean;
   currentUsername?: string;
+  initialEditMode?: boolean;
 }
 
 export function CardPageClient({
@@ -38,9 +39,10 @@ export function CardPageClient({
   widgetSettings,
   isOwner,
   currentUsername,
+  initialEditMode,
 }: CardPageClientProps) {
-  // Default to Edit mode for owner, Preview mode for visitors
-  const [isEditMode, setIsEditMode] = useState(isOwner);
+  // Use initialEditMode if provided, otherwise default to Edit mode for owner
+  const [isEditMode, setIsEditMode] = useState(initialEditMode !== undefined ? initialEditMode : isOwner);
 
   // Create a map of widget type to settings
   const widgetSettingsMap: Record<string, WidgetSettings> = {};
@@ -197,4 +199,3 @@ export function CardPageClient({
     </>
   );
 }
-

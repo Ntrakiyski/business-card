@@ -112,12 +112,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Protect /create-card routes
-  if (request.nextUrl.pathname.startsWith('/create-card')) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-  }
+
 
   // Protect onboarding route - redirect if already completed onboarding
   if (user && request.nextUrl.pathname.startsWith('/onboarding')) {
@@ -182,5 +177,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/my-card/:path*', '/home', '/create-card/:path*', '/login', '/signup', '/onboarding'],
+  matcher: ['/my-card/:path*', '/home', '/login', '/signup', '/onboarding'],
 };
