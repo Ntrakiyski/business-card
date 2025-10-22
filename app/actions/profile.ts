@@ -111,10 +111,10 @@ export async function setUsername(formData: FormData): Promise<SetUsernameResult
     }
 
     revalidatePath('/', 'layout')
-    // Return success so the client can handle the redirect
+    // Redirect to the new card in edit mode
     return {
       success: true,
-      redirectUrl: '/home'
+      redirectUrl: `/${validatedFields.data.username}?edit=true`
     }
   } catch (error) {
     console.error('Error setting username:', error)

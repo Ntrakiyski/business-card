@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { MyCardsSection } from '@/components/home/my-cards-section';
 import { PublicDirectoryTable } from '@/components/home/public-directory-table';
 import { AppLayout } from '@/components/layout/app-layout';
-import { CreateCardDialog } from '@/components/home/create-card-dialog';
+import { CreateCardButton } from '@/components/home/create-card-button';
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -55,7 +55,7 @@ export default async function HomePage() {
                   Manage your business cards and create new ones
                 </p>
               </div>
-              <CreateCardDialog />
+              <CreateCardButton />
             </div>
             <MyCardsSection cards={userCards || []} />
           </section>
