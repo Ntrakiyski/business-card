@@ -14,12 +14,12 @@ type Service = Database['public']['Tables']['services']['Row'];
 type WidgetSettings = Database['public']['Tables']['widget_settings']['Row'];
 
 interface ProfilePageProps {
-  params: {
+  params: Promise<{
     username: string;
-  };
-  searchParams: {
+  }>;
+  searchParams: Promise<{
     edit?: string;
-  };
+  }>;
 }
 
 export default async function ProfilePage({ params, searchParams }: ProfilePageProps) {

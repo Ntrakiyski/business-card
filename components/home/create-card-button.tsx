@@ -33,21 +33,17 @@ export function CreateCardButton() {
     const formData = new FormData(e.currentTarget);
     const result = await setUsername(formData);
 
-    if (result.success && result.redirectUrl) {
+    if (result.success) {
       toast.success('Username created successfully!');
       setOpen(false);
       router.push(result.redirectUrl);
       router.refresh();
     } else {
-      if (result.error) {
-        // Handle field-specific errors
-        if (result.error.username) {
-          toast.error(result.error.username[0]);
-        } else if (result.error.general) {
-          toast.error(result.error.general[0]);
-        } else {
-          toast.error('Failed to create username');
-        }
+      // Handle field-specific errors
+      if (result.error.username) {
+        toast.error(result.error.username[0]);
+      } else if (result.error.general) {
+        toast.error(result.error.general[0]);
       } else {
         toast.error('Failed to create username');
       }
