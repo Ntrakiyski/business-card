@@ -39,14 +39,17 @@ export function CreateCardButton() {
       router.push(result.redirectUrl);
       router.refresh();
     } else {
-      if (result.errors) {
-        Object.entries(result.errors).forEach(([field, messages]) => {
-          if (messages && messages.length > 0) {
-            toast.error(`${field}: ${messages[0]}`);
-          }
-        });
+      if (result.error) {
+        // Handle field-specific errors
+        if (result.error.username) {
+          toast.error(result.error.username[0]);
+        } else if (result.error.general) {
+          toast.error(result.error.general[0]);
+        } else {
+          toast.error('Failed to create username');
+        }
       } else {
-        toast.error(result.error || 'Failed to create username');
+        toast.error('Failed to create username');
       }
     }
 
