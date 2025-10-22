@@ -17,10 +17,15 @@ interface ProfilePageProps {
   params: {
     username: string;
   };
+  searchParams: {
+    edit?: string;
+  };
 }
 
-export default async function ProfilePage({ params }: ProfilePageProps) {
+export default async function ProfilePage({ params, searchParams }: ProfilePageProps) {
   const { username } = await params;
+  const resolvedSearchParams = await searchParams;
+  const editMode = resolvedSearchParams.edit === 'true';
   const supabase = await createClient();
 
   // Check if current user is authenticated
@@ -85,7 +90,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       widgetSettings={(widgetSettingsData || []) as WidgetSettings[]}
       isOwner={isOwner}
       currentUsername={user ? profile.username : undefined}
+      initialEditMode={editMode}
     />
   );
 }
-
