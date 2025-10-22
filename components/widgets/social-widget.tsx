@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Database } from '@/lib/database.types';
 import { Facebook, Instagram, Twitter, Linkedin, Youtube, Music, Github, Edit3, Send, Phone } from 'lucide-react';
 import { WidgetEditDrawer } from '@/components/edit/widget-edit-drawer';
+import { WidgetHeader } from './widget-header';
 
 type SocialLink = Database['public']['Tables']['social_links']['Row'];
 
@@ -42,7 +43,7 @@ const socialColors = {
   whatsapp: 'hover:text-[#25D366]',
 };
 
-export function SocialWidget({ links, editable = false, profileId }: SocialWidgetProps) {
+export function SocialWidget({ links, editable = false, profileId, widgetSettings }: SocialWidgetProps) {
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
 
   if ((!links || links.length === 0) && !editable) return null;
@@ -50,15 +51,13 @@ export function SocialWidget({ links, editable = false, profileId }: SocialWidge
   return (
     <>
       <Card className="w-full p-8 relative">
-        {editable && (
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute top-4 right-4 h-8 w-8"
-            onClick={() => setIsEditDrawerOpen(true)}
-          >
-            <Edit3 className="h-4 w-4" />
-          </Button>
+        {editable && widgetSettings && profileId && (
+          <WidgetHeader
+            profileId={profileId}
+            widgetType={widgetSettings.widget_type}
+            enabled={widgetSettings.enabled}
+            onEdit={() => setIsEditDrawerOpen(true)}
+          />
         )}
         
         <div className="pt-0">
@@ -104,4 +103,3 @@ export function SocialWidget({ links, editable = false, profileId }: SocialWidge
     </>
   );
 }
-
