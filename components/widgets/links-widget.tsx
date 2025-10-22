@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Database } from '@/lib/database.types';
-import { ExternalLink, Edit3 } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { WidgetEditDrawer } from '@/components/edit/widget-edit-drawer';
 import { WidgetHeader } from './widget-header';
 

@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Database } from '@/lib/database.types';
-import { Facebook, Instagram, Twitter, Linkedin, Youtube, Music, Github, Edit3, Send, Phone } from 'lucide-react';
+import { Facebook, Instagram, Twitter, Linkedin, Youtube, Music, Github, Send, Phone } from 'lucide-react';
 import { WidgetEditDrawer } from '@/components/edit/widget-edit-drawer';
 import { WidgetHeader } from './widget-header';
 
