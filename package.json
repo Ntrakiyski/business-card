@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "bun run db:migrate && next build --turbopack",
+    "build": "next build --turbopack",
+    "build:with-migration": "bun run db:migrate && next build --turbopack",
     "start": "next start",
     "lint": "eslint",
     "test": "playwright test",
