@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Database } from '@/lib/database.types';
 import { ExternalLink, Edit3 } from 'lucide-react';
 import { WidgetEditDrawer } from '@/components/edit/widget-edit-drawer';
+import { WidgetHeader } from './widget-header';
 
 type CustomLink = Database['public']['Tables']['custom_links']['Row'];
 
@@ -17,7 +18,7 @@ interface LinksWidgetProps {
   widgetSettings?: Database["public"]["Tables"]["widget_settings"]["Row"];
 }
 
-export function LinksWidget({ links, editable = false, profileId }: LinksWidgetProps) {
+export function LinksWidget({ links, editable = false, profileId, widgetSettings }: LinksWidgetProps) {
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
 
   if ((!links || links.length === 0) && !editable) return null;
@@ -25,15 +26,13 @@ export function LinksWidget({ links, editable = false, profileId }: LinksWidgetP
   return (
     <>
       <Card className="w-full p-8 relative">
-        {editable && (
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute top-4 right-4 h-8 w-8"
-            onClick={() => setIsEditDrawerOpen(true)}
-          >
-            <Edit3 className="h-4 w-4" />
-          </Button>
+        {editable && widgetSettings && profileId && (
+          <WidgetHeader
+            profileId={profileId}
+            widgetType={widgetSettings.widget_type}
+            enabled={widgetSettings.enabled}
+            onEdit={() => setIsEditDrawerOpen(true)}
+          />
         )}
         
         <div className="pt-0">
