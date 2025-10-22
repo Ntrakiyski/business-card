@@ -31,7 +31,7 @@ export function PublicToggle({ profileId, isPublic }: PublicToggleProps) {
       } else {
         toast.error(result.error || 'Failed to update card visibility');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to update card visibility');
     } finally {
       setIsUpdating(false);

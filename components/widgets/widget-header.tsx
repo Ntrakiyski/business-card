@@ -28,7 +28,7 @@ export function WidgetHeader({ profileId, widgetType, enabled, onEdit }: WidgetH
       } else {
         toast.error(result.error || 'Failed to update widget visibility');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to update widget visibility');
     } finally {
       setIsUpdating(false);
@@ -60,4 +60,3 @@ export function WidgetHeader({ profileId, widgetType, enabled, onEdit }: WidgetH
     </div>
   );
 }
-
