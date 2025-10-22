@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Database } from '@/lib/database.types';
 import { Trash2, Plus } from 'lucide-react';
@@ -146,15 +145,6 @@ export function SocialWidgetEditForm({ links, profileId, onClose }: SocialWidget
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor={`enabled-${link.id}`}>Enabled</Label>
-                    <Switch
-                      id={`enabled-${link.id}`}
-                      checked={link.enabled}
-                      onCheckedChange={(checked) => updateEditLink(link.id, 'enabled', checked)}
-                    />
-                  </div>
-
                   <Button
                     type="button"
                     size="sm"
@@ -219,15 +209,6 @@ export function SocialWidgetEditForm({ links, profileId, onClose }: SocialWidget
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <Label htmlFor="new-enabled">Enabled</Label>
-            <Switch
-              id="new-enabled"
-              checked={newLink.enabled}
-              onCheckedChange={(checked) => setNewLink({ ...newLink, enabled: checked })}
-            />
-          </div>
-
           <Button
             type="button"
             onClick={handleAddLink}
@@ -248,4 +229,3 @@ export function SocialWidgetEditForm({ links, profileId, onClose }: SocialWidget
     </div>
   );
 }
-
