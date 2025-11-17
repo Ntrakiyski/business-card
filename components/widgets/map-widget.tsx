@@ -8,9 +8,10 @@ type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface MapWidgetProps {
   profile: Profile;
+  isOwner: boolean;
 }
 
-export function MapWidget({ profile }: MapWidgetProps) {
+export function MapWidget({ profile, isOwner }: MapWidgetProps) {
   const hasLocation = profile.address && profile.latitude && profile.longitude;
   
   if (!hasLocation) return null;
@@ -53,4 +54,3 @@ export function MapWidget({ profile }: MapWidgetProps) {
     </Card>
   );
 }
-

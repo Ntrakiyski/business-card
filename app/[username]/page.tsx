@@ -21,6 +21,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const { username } = params;
   const supabase = await createClient();
 
+  // Get current user to check if they're the owner
+  const { data: { user } } = await supabase.auth.getUser();
+
   // Fetch profile
   const { data: profileData, error: profileError } = await supabase
     .from('profiles')
@@ -33,6 +36,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   }
 
   const profile = profileData as Profile;
+  const isOwner = user?.id === profile.id;
 
   // Fetch custom links
   const { data: customLinks } = await supabase
@@ -78,37 +82,37 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     { 
       type: 'profile', 
       order: widgetOrder['profile'] ?? 1, 
-      component: <ProfileWidget key="profile" profile={profile} /> 
+      component: <ProfileWidget key="profile" profile={profile} isOwner={isOwner} /> 
     },
     { 
       type: 'bio', 
       order: widgetOrder['bio'] ?? 2, 
-      component: profile.bio ? <BioWidget key="bio" bio={profile.bio} /> : null 
+      component: profile.bio ? <BioWidget key="bio" bio={profile.bio} profileId={profile.id} isOwner={isOwner} /> : null 
     },
     { 
       type: 'links', 
       order: widgetOrder['links'] ?? 3, 
-      component: customLinks && customLinks.length > 0 ? <LinksWidget key="links" links={customLinks} /> : null 
+      component: customLinks && customLinks.length > 0 ? <LinksWidget key="links" links={customLinks} profileId={profile.id} isOwner={isOwner} /> : null 
     },
     { 
       type: 'social', 
       order: widgetOrder['social'] ?? 4, 
-      component: socialLinks && socialLinks.length > 0 ? <SocialWidget key="social" links={socialLinks} /> : null 
+      component: socialLinks && socialLinks.length > 0 ? <SocialWidget key="social" links={socialLinks} profileId={profile.id} isOwner={isOwner} /> : null 
     },
     { 
       type: 'services', 
       order: widgetOrder['services'] ?? 5, 
-      component: services && services.length > 0 ? <ServicesWidget key="services" services={services} /> : null 
+      component: services && services.length > 0 ? <ServicesWidget key="services" services={services} profileId={profile.id} isOwner={isOwner} /> : null 
     },
     { 
       type: 'contact', 
       order: widgetOrder['contact'] ?? 6, 
-      component: <ContactWidget key="contact" profile={profile} /> 
+      component: <ContactWidget key="contact" profile={profile} isOwner={isOwner} /> 
     },
     { 
       type: 'map', 
       order: widgetOrder['map'] ?? 7, 
-      component: <MapWidget key="map" profile={profile} /> 
+      component: <MapWidget key="map" profile={profile} isOwner={isOwner} /> 
     },
   ];
 
