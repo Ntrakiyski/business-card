@@ -3,15 +3,15 @@
 FROM oven/bun:1-alpine AS install
 WORKDIR /usr/src/app
 COPY package.json package-lock.json ./
-# Use --frozen-lockfile to ensure deterministic and reproducible installs.
-RUN npm ci
+# Use Bun to install dependencies with frozen lockfile
+RUN bun install --frozen-lockfile
 
 # Stage 2: Build the Next.js application
 FROM install AS builder
 WORKDIR /usr/src/app
 COPY --from=install /usr/src/app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN bun run build
 
 # Stage 3: Production image
 # Start from a clean base image to keep the final image small.
@@ -30,4 +30,3 @@ EXPOSE 3000
 
 # The standalone output produces a Node.js server script. The oven/bun image includes Node.js.
 CMD ["node", "server.js"]
-
