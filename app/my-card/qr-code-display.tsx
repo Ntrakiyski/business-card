@@ -2,18 +2,36 @@
 
 import { QRCodeSVG } from 'qrcode.react';
 import { Button } from '@/components/ui/button';
-import { Phone } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 interface QRCodeDisplayProps {
   value: string;
-  phone?: string | null;
 }
 
-export function QRCodeDisplay({ value, phone }: QRCodeDisplayProps) {
+export function QRCodeDisplay({ value }: QRCodeDisplayProps) {
+  const handleDownload = () => {
+    // Get the SVG element
+    const svg = document.getElementById('qr-code-svg');
+    if (!svg) return;
+
+    // Convert SVG to data URL
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+    const svgUrl = URL.createObjectURL(svgBlob);
+
+    // Create download link
+    const downloadLink = document.createElement('a');
+    downloadLink.href = svgUrl;
+    downloadLink.download = 'qr-code.svg';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    URL.revokeObjectURL(svgUrl);
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white p-8 rounded-lg shadow-sm flex justify-center">
+    <div className="space-y-4">
+      <div className="bg-white p-6 rounded-lg shadow-sm">
         <QRCodeSVG
           id="qr-code-svg"
           value={value}
@@ -22,19 +40,15 @@ export function QRCodeDisplay({ value, phone }: QRCodeDisplayProps) {
           includeMargin
         />
       </div>
-      <div className="w-full space-y-3">
-        {phone && (
-          <Button
-            variant="outline"
-            className="w-full gap-2"
-            size="lg"
-            disabled
-          >
-            <Phone className="w-5 h-5" />
-            <span className="font-medium">{phone}</span>
-          </Button>
-        )}
-      </div>
+      <Button
+        onClick={handleDownload}
+        variant="outline"
+        className="w-full"
+      >
+        <Download className="w-4 h-4 mr-2" />
+        Download QR Code
+      </Button>
     </div>
   );
 }
+

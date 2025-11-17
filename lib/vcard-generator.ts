@@ -17,15 +17,10 @@ export function generateVCard(profile: Profile): string {
   let vcard = 'BEGIN:VCARD\n';
   vcard += 'VERSION:3.0\n';
   
-  // Full name - split into first and last name
+  // Full name
   if (display_name) {
-    const nameParts = display_name.trim().split(/\s+/);
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts.slice(1).join(' ') || '';
-    
     vcard += `FN:${display_name}\n`;
-    // N format: Last;First;Middle;Prefix;Suffix
-    vcard += `N:${lastName};${firstName};;;\n`;
+    vcard += `N:${display_name};;;;\n`;
   }
   
   // Organization and title
@@ -71,3 +66,4 @@ export function downloadVCard(profile: Profile): void {
   
   URL.revokeObjectURL(url);
 }
+

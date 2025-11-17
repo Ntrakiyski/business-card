@@ -10,10 +10,6 @@ import { toast } from 'sonner'
 
 export default function OnboardingPage() {
   const [loading, setLoading] = useState(false)
-  const [username, setUsernameValue] = useState('')
-  
-  // Get the base URL for preview
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -26,7 +22,6 @@ export default function OnboardingPage() {
 
       if (result && !result.success && result.error) {
         // Handle errors
-        setLoading(false) // Reset loading state for errors
         if (typeof result.error === 'object' && 'username' in result.error) {
           const errors = result.error as { username?: string[] }
           if (errors.username) {
@@ -38,15 +33,12 @@ export default function OnboardingPage() {
         } else {
           toast.error('Failed to set username. Please try again.')
         }
-      } else if (result && result.success && result.redirectUrl) {
-        // Keep loading state true during redirect
-        // Handle successful redirect on the client side using window.location
-        // This ensures a full page navigation which will trigger middleware checks
-        window.location.href = result.redirectUrl;
       }
+      // If successful, the server action will redirect
     } catch {
-      setLoading(false) // Reset loading state for unexpected errors
       toast.error('An unexpected error occurred. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -56,7 +48,7 @@ export default function OnboardingPage() {
         <CardHeader>
           <CardTitle className="text-2xl">Choose Your Username</CardTitle>
           <CardDescription>
-            This will be your unique identifier for your digital business card. Your card will be accessible at this URL.
+            This will be your unique identifier for your digital business card
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -74,17 +66,7 @@ export default function OnboardingPage() {
                 maxLength={20}
                 pattern="[a-zA-Z0-9_]+"
                 title="Username can only contain letters, numbers, and underscores"
-                value={username}
-                onChange={(e) => setUsernameValue(e.target.value.toLowerCase())}
               />
-              {username && (
-                <div className="rounded-md bg-blue-50 border border-blue-200 p-3">
-                  <p className="text-sm font-medium text-blue-900">Your card URL:</p>
-                  <p className="text-sm text-blue-700 break-all font-mono mt-1">
-                    {baseUrl}/{username}
-                  </p>
-                </div>
-              )}
               <p className="text-xs text-gray-500">
                 3-20 characters. Letters, numbers, and underscores only.
               </p>

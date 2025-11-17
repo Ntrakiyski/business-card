@@ -34,10 +34,8 @@ export default function LoginPage() {
         } else {
           toast.error('Failed to sign in. Please try again.')
         }
-      } else if (result && result.success && result.redirectUrl) {
-        // Handle successful redirect on the client side
-        window.location.href = result.redirectUrl;
       }
+      // If successful, the server action will redirect
     } catch {
       toast.error('An unexpected error occurred. Please try again.')
     } finally {
