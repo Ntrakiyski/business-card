@@ -6,20 +6,18 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    
-    # Environment variables for your application
     environment:
-      # Supabase configuration
-      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
-      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
+      # This makes the full, auto-generated URL available to the Next.js app at runtime.
+      NEXT_PUBLIC_APP_URL: ${COOLIFY_URL}
+    labels:
+      # Enable Coolify's Traefik proxy to manage this service.
+      - "traefik.enable=true"
       
-    # Expose the port for the application
-    ports:
-      - "3000:3000"
+      # The routing rule: Tells Traefik to listen for the FQDN (e.g., app.my-domain.com)
+      # that Coolify automatically provides in the COOLIFY_FQDN environment variable.
+      - "traefik.http.routers.nextjs-router.rule=Host(`${COOLIFY_FQDN}`)"
       
-# Define the network for the application
-networks:
-  default:
-    driver: bridge
+      # The port rule: Tells Traefik to forward traffic to port 3000 inside this container,
+      # which is the port the Next.js standalone server is listening on.
+      - "traefik.http.services.nextjs-app.loadbalancer.server.port=3000"
+

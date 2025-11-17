@@ -130,7 +130,6 @@ export interface Database {
           title: string
           description: string | null
           icon: string | null
-          bullets: Json[] | null
           order: number
           enabled: boolean
           created_at: string
@@ -141,7 +140,6 @@ export interface Database {
           title: string
           description?: string | null
           icon?: string | null
-          bullets?: Json[] | null
           order?: number
           enabled?: boolean
           created_at?: string
@@ -152,7 +150,6 @@ export interface Database {
           title?: string
           description?: string | null
           icon?: string | null
-          bullets?: Json[] | null
           order?: number
           enabled?: boolean
           created_at?: string

@@ -3,11 +3,10 @@ import { redirect } from 'next/navigation';
 import { QRCodeDisplay } from './qr-code-display';
 import { Card } from '@/components/ui/card';
 import Link from 'next/link';
-import { ExternalLink, Facebook, Instagram, Twitter, Linkedin, Youtube, Music, Github, Send, Phone } from 'lucide-react';
-import { Database } from '@/lib/database.types';
+import { ExternalLink } from 'lucide-react';
+import { Database } from '@/lib/types/database';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
-type SocialLink = Database['public']['Tables']['social_links']['Row'];
 
 export default async function MyCardPage() {
   const supabase = await createClient();
@@ -23,7 +22,7 @@ export default async function MyCardPage() {
   const { data: profileData, error: profileError } = await supabase
     .from('profiles')
     .select('*')
-    .eq('id', user.id)
+    .eq('user_id', user.id)
     .maybeSingle();
 
   if (profileError || !profileData) {
@@ -36,43 +35,9 @@ export default async function MyCardPage() {
     redirect('/onboarding');
   }
 
-  // Get social links
-  const { data: socialLinksData } = await supabase
-    .from('social_links')
-    .select('*')
-    .eq('profile_id', user.id);
-  
-  const socialLinks = (socialLinksData || []) as SocialLink[];
-
   // Generate the full profile URL
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   const profileUrl = `${baseUrl}/${profile.username}`;
-
-  const socialIcons = {
-    facebook: Facebook,
-    instagram: Instagram,
-    twitter: Twitter,
-    linkedin: Linkedin,
-    youtube: Youtube,
-    spotify: Music,
-    github: Github,
-    tiktok: Music,
-    telegram: Send,
-    whatsapp: Phone,
-  };
-
-  const socialColors = {
-    facebook: 'hover:text-[#1877F2]',
-    instagram: 'hover:text-[#E4405F]',
-    twitter: 'hover:text-[#1DA1F2]',
-    linkedin: 'hover:text-[#0A66C2]',
-    youtube: 'hover:text-[#FF0000]',
-    spotify: 'hover:text-[#1DB954]',
-    github: 'hover:text-[#181717]',
-    tiktok: 'hover:text-[#000000]',
-    telegram: 'hover:text-[#2AABEE]',
-    whatsapp: 'hover:text-[#25D366]',
-  };
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4">
@@ -82,7 +47,7 @@ export default async function MyCardPage() {
             {/* Header */}
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                {profile.display_name || profile.username}
+                {profile.full_name || profile.username}
               </h1>
               <p className="text-sm text-gray-600 mt-1">
                 @{profile.username}
@@ -90,7 +55,7 @@ export default async function MyCardPage() {
             </div>
 
             {/* QR Code */}
-            <QRCodeDisplay value={profileUrl} phone={profile.phone} />
+            <QRCodeDisplay value={profileUrl} />
 
             {/* Instructions */}
             <div className="space-y-2">
@@ -106,28 +71,10 @@ export default async function MyCardPage() {
               </Link>
             </div>
 
-            {/* Social Links */}
-            {socialLinks && socialLinks.length > 0 && (
+            {/* Bio */}
+            {profile.bio && (
               <div className="pt-4 border-t border-gray-200 w-full">
-                <div className="flex flex-wrap gap-4 justify-center">
-                  {socialLinks.map((link) => {
-                    const Icon = socialIcons[link.platform as keyof typeof socialIcons];
-                    const colorClass = socialColors[link.platform as keyof typeof socialColors];
-                    
-                    return (
-                      <a
-                        key={link.id}
-                        href={link.url.startsWith('+') ? `tel:${link.url}` : link.url}
-                        target={link.url.startsWith('+') ? undefined : "_blank"}
-                        rel={link.url.startsWith('+') ? undefined : "noopener noreferrer"}
-                        className={`p-3 rounded-full bg-gray-100 text-gray-600 ${colorClass} transition-colors`}
-                        aria-label={link.platform}
-                      >
-                        {Icon && <Icon className="w-6 h-6" />}
-                      </a>
-                    );
-                  })}
-                </div>
+                <p className="text-sm text-gray-600">{profile.bio}</p>
               </div>
             )}
           </div>
