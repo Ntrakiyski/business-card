@@ -140,6 +140,7 @@ export async function updateProfile(profileId: string, data: {
     // Using double cast to bypass strict typing in Docker build
     const { error } = await supabase
       .from('profiles')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .update(updateData as any as Database['public']['Tables']['profiles']['Update'])
       .eq('id', user.id)
 
