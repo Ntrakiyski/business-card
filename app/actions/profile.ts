@@ -137,11 +137,10 @@ export async function updateProfile(profileId: string, data: {
     if (data.longitude !== undefined) updateData.longitude = data.longitude
 
     // Type assertion needed due to Supabase client schema mismatch
-    // Using double cast to bypass strict typing in Docker build
+    // @ts-expect-error - Schema mismatch between Supabase client and Database types
     const { error } = await supabase
       .from('profiles')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .update(updateData as any as Database['public']['Tables']['profiles']['Update'])
+      .update(updateData)
       .eq('id', user.id)
 
     if (error) {
