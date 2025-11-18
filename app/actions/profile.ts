@@ -118,8 +118,8 @@ export async function updateProfile(profileId: string, data: {
   try {
     const { supabase, user } = await verifyProfileOwnership(profileId)
 
-    // Build update object with only provided fields using proper type
-    const updateData: Database['public']['Tables']['profiles']['Update'] = {
+    // Build update object with only provided fields
+    const updateData: Record<string, string | number | null | undefined> = {
       updated_at: new Date().toISOString()
     }
     
@@ -136,9 +136,10 @@ export async function updateProfile(profileId: string, data: {
     if (data.latitude !== undefined) updateData.latitude = data.latitude
     if (data.longitude !== undefined) updateData.longitude = data.longitude
 
+    // Type assertion needed due to Supabase client schema mismatch
     const { error } = await supabase
       .from('profiles')
-      .update(updateData)
+      .update(updateData as Database['public']['Tables']['profiles']['Update'])
       .eq('id', user.id)
 
     if (error) {
