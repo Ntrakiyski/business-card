@@ -7,9 +7,11 @@ type CustomLink = Database['public']['Tables']['custom_links']['Row'];
 
 interface LinksWidgetProps {
   links: CustomLink[];
+  profileId: string;
+  isOwner: boolean;
 }
 
-export function LinksWidget({ links }: LinksWidgetProps) {
+export function LinksWidget({ links, profileId, isOwner }: LinksWidgetProps) {
   if (!links || links.length === 0) return null;
 
   return (
@@ -54,4 +56,3 @@ export function LinksWidget({ links }: LinksWidgetProps) {
     </Card>
   );
 }
-

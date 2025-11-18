@@ -6,6 +6,8 @@ type SocialLink = Database['public']['Tables']['social_links']['Row'];
 
 interface SocialWidgetProps {
   links: SocialLink[];
+  profileId: string;
+  isOwner: boolean;
 }
 
 const socialIcons = {
@@ -30,7 +32,7 @@ const socialColors = {
   tiktok: 'hover:text-[#000000]',
 };
 
-export function SocialWidget({ links }: SocialWidgetProps) {
+export function SocialWidget({ links, profileId, isOwner }: SocialWidgetProps) {
   if (!links || links.length === 0) return null;
 
   return (
@@ -59,4 +61,3 @@ export function SocialWidget({ links }: SocialWidgetProps) {
     </Card>
   );
 }
-

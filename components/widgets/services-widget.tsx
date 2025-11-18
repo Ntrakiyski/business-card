@@ -6,6 +6,8 @@ type Service = Database['public']['Tables']['services']['Row'];
 
 interface ServicesWidgetProps {
   services: Service[];
+  profileId: string;
+  isOwner: boolean;
 }
 
 // Default icon mapping for common service types
@@ -17,7 +19,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   web: Code,
 };
 
-export function ServicesWidget({ services }: ServicesWidgetProps) {
+export function ServicesWidget({ services, profileId, isOwner }: ServicesWidgetProps) {
   if (!services || services.length === 0) return null;
 
   return (
